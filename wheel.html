@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GrifMC Pro — Колесо удачи</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #fff;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: 
+        radial-gradient(ellipse at 30% 40%, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 60%, rgba(255, 100, 0, 0.06) 0%, transparent 50%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .admin-lock {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 42px;
+      height: 42px;
+      background: rgba(20,20,20,0.8);
+      border: 1px solid #444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 100;
+      opacity: 0.5;
+      transition: all 0.3s;
+    }
+    .admin-lock:hover { opacity: 1; border-color: #FFD700; }
+
+    .main-card {
+      position: relative;
+      z-index: 10;
+      max-width: 520px;
+      width: 100%;
+      padding: 30px 25px;
+      border-radius: 24px;
+      text-align: center;
+      background: rgba(20, 20, 20, 0.9);
+      backdrop-filter: blur(20px);
+      border: 2px solid #FFD700;
+      box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+    }
+
+    @keyframes rgb {
+      0% { color: #ff4d4d; } 25% { color: #ffd700; }
+      50% { color: #4dff4d; } 75% { color: #4dd2ff; }
+      100% { color: #ff4d4d; }
+    }
+    .rgb-title {
+      font-size: 32px;
+      font-weight: 900;
+      animation: rgb 3s infinite;
+      margin-bottom: 5px;
+    }
+    .spin-count {
+      color: #FFD700;
+      font-size: 15px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      background: rgba(255,215,0,0.1);
+      padding: 8px 15px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    .nick-input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      background: #1a1a1a;
+      border: 1px solid #FFD700;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .wheel-wrapper {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 0 auto 20px;
+    }
+    #wheel-canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    }
+    .wheel-pointer {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 36px;
+      z-index: 10;
+    }
+
+    .spin-btn {
+      display: block;
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 14px;
+      font-size: 20px;
+      font-weight: 800;
+      cursor: pointer;
+      background: linear-gradient(180deg, #FFD700, #FFA000);
+      color: #000;
+      letter-spacing: 2px;
+      margin-bottom: 15px;
+    }
+    .spin-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+
+    .result-box {
+      background: #1a1a1a;
+      border: 2px solid #FFD700;
+      border-radius: 14px;
+      padding: 18px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #FFD700;
+      display: none;
+    }
+    .rarity-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      margin: 8px 0 0;
+    }
+    .rarity-common { background: #777; color: #fff; }
+    .rarity-gold { background: #FFD700; color: #000; }
+    .rarity-diamond { background: #00BCD4; color: #000; }
+    .rarity-rainbow { 
+      background: linear-gradient(45deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff);
+      background-size: 300% 300%;
+      animation: rainbowShift 2s linear infinite;
+      color: #fff;
+      font-weight: 900;
+    }
+    @keyframes rainbowShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .back-link { display: block; margin-top: 20px; color: #888; text-decoration: none; font-size: 14px; }
+    .back-link:hover { color: #fff; }
+
+    /* МОДАЛКИ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: #1a1a1a;
+      padding: 25px;
+      border-radius: 16px;
+      border: 2px solid #FFD700;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-title { color: #FFD700; font-size: 22px; font-weight: 900; margin-bottom: 15px; }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      margin-bottom: 8px;
+    }
+    .btn-green { background: #4CAF50; color: #fff; }
+    .btn-gray { background: #666; color: #fff; }
+    .btn-gold { background: #FFD700; color: #000; }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+    }
+    label {
+      display: block;
+      text-align: left;
+      color: #ccc;
+      font-size: 13px;
+      font-weight: bold;
+      margin: 8px 0 4px;
+    }
+    .item-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 6px;
+      background: #111;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .item-row input { margin-bottom: 0; flex: 1; }
+    .item-row select { width: 100px; margin-bottom: 0; }
+    .item-num { width: 28px; text-align: center; font-weight: bold; color: #FFD700; }
+    .add-spins-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 15px 0;
+      background: rgba(255,215,0,0.1);
+      padding: 12px;
+      border-radius: 10px;
+    }
+    .add-spins-row input { width: 80px; margin-bottom: 0; }
+    .add-spins-row button { width: auto; padding: 10px 15px; margin-bottom: 0; }
+  </style>
+</head>
+<body>
+
+  <div class="admin-lock" onclick="openAdminLogin()" title="Админ-панель">🔒</div>
+
+  <div class="main-card">
+    <h1 class="rgb-title">🎰 КОЛЕСО УДАЧИ</h1>
+    <p class="spin-count" id="spin-count">🎯 Попыток: 5</p>
+
+    <input type="text" class="nick-input" id="nick-input" placeholder="👤 Введите ваш ник в игре">
+
+    <div class="wheel-wrapper">
+      <div class="wheel-pointer">▼</div>
+      <canvas id="wheel-canvas" width="300" height="300"></canvas>
+    </div>
+
+    <button class="spin-btn" id="spin-btn" onclick="spinWheel()">🎰 КРУТИТЬ</button>
+    <div class="result-box" id="result-box"></div>
+    
+    <a href="index.html" class="back-link">← На главную</a>
+  </div>
+
+  <!-- МОДАЛКА ВВОДА КОДА -->
+  <div class="modal-overlay" id="login-modal">
+    <div class="modal-box">
+      <p class="modal-title">🔐 Введите код доступа</p>
+      <input type="password" id="admin-code-input" placeholder="Код">
+      <button class="btn btn-green" onclick="checkAdminCode()">🔓 Войти</button>
+      <p id="login-error" style="color:#f44336; display:none;">❌ Неверный код!</p>
+      <button class="btn btn-gray" onclick="closeAdminLogin()">✖ Отмена</button>
+    </div>
+  </div>
+
+  <!-- АДМИНКА -->
+  <div class="modal-overlay" id="admin-modal">
+    <div class="modal-box">
+      <p class="modal-title">🔧 Админ-панель</p>
+      
+      <label style="text-align:center;">🎯 Добавить попытки (себе)</label>
+      <div class="add-spins-row">
+        <input type="number" id="add-spins-input" value="1" min="1" max="100">
+        <button class="btn btn-gold" onclick="addSpins()">➕ Добавить</button>
+      </div>
+      
+      <label style="text-align:center; margin-top:15px;">📦 Настройка предметов (название, шанс, редкость)</label>
+      <div id="admin-items"></div>
+      <button class="btn btn-green" onclick="saveItems()">💾 Сохранить всё</button>
+      <button class="btn btn-gray" onclick="closeAdmin()">✖ Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    var ADMIN_CODE = 'kazik3000';
+    var SPINS_PER_DAY = 5;
+    var WEB3FORMS_KEY = '42864224-6df0-4e25-8068-7b486cf314dd';
+
+    var defaultItems = [
+      { name: 'Монеты 1.000', rarity: 'common', chance: 25 },
+      { name: 'Монеты 5.000', rarity: 'common', chance: 20 },
+      { name: 'Регион бесплатно', rarity: 'gold', chance: 12 },
+      { name: 'VIP на 1 день', rarity: 'gold', chance: 10 },
+      { name: 'Алмазная броня', rarity: 'diamond', chance: 8 },
+      { name: 'Монеты 50.000', rarity: 'diamond', chance: 7 },
+      { name: 'Донат Premium', rarity: 'rainbow', chance: 5 },
+      { name: 'Сундук сокровищ', rarity: 'gold', chance: 5 },
+      { name: 'Эликсир удачи', rarity: 'common', chance: 3 },
+      { name: 'Ключ подземелья', rarity: 'gold', chance: 2 },
+      { name: 'Драконий меч', rarity: 'rainbow', chance: 1 },
+      { name: 'Алмазы 64 шт.', rarity: 'diamond', chance: 1 },
+      { name: 'Летающий остров', rarity: 'rainbow', chance: 0.5 },
+      { name: 'Тотем бессмертия', rarity: 'diamond', chance: 0.3 },
+      { name: 'Админ на час', rarity: 'rainbow', chance: 0.2 }
+    ];
+
+    function getItems() {
+      var i = localStorage.getItem('wheel_items_v2');
+      return i ? JSON.parse(i) : JSON.parse(JSON.stringify(defaultItems));
+    }
+    function saveItemsToStorage(arr) { localStorage.setItem('wheel_items_v2', JSON.stringify(arr)); }
+
+    function getSpinsLeft() {
+      var today = new Date().toDateString();
+      var saved = localStorage.getItem('wheel_spins');
+      if (!saved) return SPINS_PER_DAY;
+      var data = JSON.parse(saved);
+      if (data.date !== today) return SPINS_PER_DAY;
+      return data.spins;
+    }
+    function setSpinsLeft(n) {
+      localStorage.setItem('wheel_spins', JSON.stringify({
+        date: new Date().toDateString(),
+        spins: Math.max(0, n)
+      }));
+    }
+
+    function updateUI() {
+      var spins = getSpinsLeft();
+      document.getElementById('spin-count').textContent = '🎯 Попыток: ' + spins;
+      document.getElementById('spin-btn').disabled = spins <= 0;
+    }
+
+    function drawWheel() {
+      var canvas = document.getElementById('wheel-canvas');
+      var ctx = canvas.getContext('2d');
+      var items = getItems();
+      var total = items.reduce(function(s, i){ return s + (i.chance || 0); }, 0) || 1;
+      var colors = { common: '#888', gold: '#FFD700', diamond: '#00BCD4', rainbow: '#ff00ff' };
+
+      ctx.clearRect(0, 0, 300, 300);
+      var cx = 150, cy = 150, r = 140;
+      var start = -Math.PI / 2;
+
+      items.forEach(function(item, idx) {
+        var angle = (item.chance / total) * 2 * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, start, start + angle);
+        ctx.closePath();
+        ctx.fillStyle = colors[item.rarity] || '#888';
+        ctx.fill();
+        ctx.strokeStyle = '#0a0a0a';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(start + angle / 2);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 13px Segoe UI';
+        ctx.textAlign = 'center';
+        ctx.fillText((idx + 1), r * 0.72, 6);
+        ctx.restore();
+
+        start += angle;
+      });
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, 25, 0, 2 * Math.PI);
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fill();
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 14px Segoe UI';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎰', cx, cy + 6);
+    }
+
+    function spinWheel() {
+      var nick = document.getElementById('nick-input').value.trim();
+      if (!nick) { alert('❌ Введи свой ник перед круткой!'); return; }
+
+      var spins = getSpinsLeft();
+      if (spins <= 0) return;
+
+      setSpinsLeft(spins - 1);
+      updateUI();
+      document.getElementById('result-box').style.display = 'none';
+
+      var items = getItems();
+      var total = items.reduce(function(s, i){ return s + (i.chance || 0); }, 0) || 1;
+      var rand = Math.random() * total;
+      var cum = 0, winner = null, winIdx = 0;
+      for (var i = 0; i < items.length; i++) {
+        cum += items[i].chance;
+        if (rand <= cum) { winner = items[i]; winIdx = i; break; }
+      }
+      if (!winner) { winner = items[0]; winIdx = 0; }
+
+      // Отправка на почту
+      var formData = new FormData();
+      formData.append('access_key', WEB3FORMS_KEY);
+      formData.append('subject', '🎰 Новый выигрыш в Колесе удачи!');
+      formData.append('Ник игрока', nick);
+      formData.append('Награда', winner.name);
+      formData.append('Редкость', winner.rarity);
+      formData.append('Дата', new Date().toLocaleString('ru-RU'));
+      fetch('https://api.web3forms.com/submit', { method: 'POST', body: formData }).catch(function(){});
+
+      var canvas = document.getElementById('wheel-canvas');
+      var spinsCount = 6 + Math.floor(Math.random() * 5);
+      var segmentAngle = 360 / items.length;
+      var target = 360 * spinsCount + (360 - winIdx * segmentAngle) + Math.random() * segmentAngle * 0.8;
+      
+      canvas.style.transition = 'transform 4s cubic-bezier(0.15, 0.7, 0.1, 1)';
+      canvas.style.transform = 'rotate(' + target + 'deg)';
+
+      document.getElementById('spin-btn').disabled = true;
+
+      setTimeout(function() {
+        canvas.style.transition = 'none';
+        canvas.style.transform = 'rotate(0deg)';
+
+        var rarityNames = { common: '⭐ Обычная', gold: '🥇 Золотая', diamond: '💎 Алмазная', rainbow: '🌈 РАДУЖНАЯ' };
+        var box = document.getElementById('result-box');
+        box.innerHTML = '🎉 <b>' + winner.name + '</b><br><span class="rarity-badge rarity-' + winner.rarity + '">' + (rarityNames[winner.rarity] || winner.rarity) + '</span>';
+        box.style.display = 'block';
+        updateUI();
+      }, 4100);
+    }
+
+    // АДМИНКА
+    function openAdminLogin() {
+      document.getElementById('login-modal').classList.add('active');
+    }
+    function closeAdminLogin() {
+      document.getElementById('login-modal').classList.remove('active');
+      document.getElementById('admin-code-input').value = '';
+      document.getElementById('login-error').style.display = 'none';
+    }
+    function checkAdminCode() {
+      if (document.getElementById('admin-code-input').value === ADMIN_CODE) {
+        document.getElementById('login-modal').classList.remove('active');
+        openAdmin();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    }
+    function openAdmin() {
+      var items = getItems();
+      var html = '';
+      items.forEach(function(item, i) {
+        html += '<div class="item-row">';
+        html += '<div class="item-num">' + (i+1) + '</div>';
+        html += '<input value="' + item.name + '" data-idx="' + i + '" data-field="name">';
+        html += '<input type="number" value="' + item.chance + '" data-idx="' + i + '" data-field="chance" style="width:65px;" step="0.1">';
+        html += '<select data-idx="' + i + '" data-field="rarity">';
+        html += '<option value="common"' + (item.rarity==='common'?' selected':'') + '>Обычная</option>';
+        html += '<option value="gold"' + (item.rarity==='gold'?' selected':'') + '>Золотая</option>';
+        html += '<option value="diamond"' + (item.rarity==='diamond'?' selected':'') + '>Алмазная</option>';
+        html += '<option value="rainbow"' + (item.rarity==='rainbow'?' selected':'') + '>РАДУЖНАЯ</option>';
+        html += '</select>';
+        html += '</div>';
+      });
+      document.getElementById('admin-items').innerHTML = html;
+      document.getElementById('add-spins-input').value = 1;
+      document.getElementById('admin-modal').classList.add('active');
+    }
+    function closeAdmin() {
+      document.getElementById('admin-modal').classList.remove('active');
+    }
+    function saveItems() {
+      var inputs = document.querySelectorAll('#admin-items [data-idx]');
+      var items = getItems();
+      inputs.forEach(function(el) {
+        var idx = parseInt(el.dataset.idx);
+        var field = el.dataset.field;
+        items[idx][field] = (field === 'chance') ? (parseFloat(el.value) || 0) : el.value;
+      });
+      saveItemsToStorage(items);
+      drawWheel();
+      alert('✅ Предметы сохранены!');
+    }
+    function addSpins() {
+      var add = parseInt(document.getElementById('add-spins-input').value) || 1;
+      var current = getSpinsLeft();
+      setSpinsLeft(current + add);
+      updateUI();
+      document.getElementById('add-spins-input').value = 1;
+    }
+
+    drawWheel();
+    updateUI();
+  </script>
+</body>
+</html>
