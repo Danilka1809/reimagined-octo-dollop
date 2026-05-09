@@ -28,6 +28,26 @@
       pointer-events: none;
     }
 
+    .admin-lock {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 42px;
+      height: 42px;
+      background: rgba(20,20,20,0.8);
+      border: 1px solid #444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 100;
+      opacity: 0.5;
+      transition: all 0.3s;
+    }
+    .admin-lock:hover { opacity: 1; border-color: #00E676; }
+
     .card {
       position: relative;
       z-index: 10;
@@ -108,6 +128,18 @@
       line-height: 1.6;
     }
 
+    .locked-msg {
+      background: rgba(244, 67, 54, 0.2);
+      border: 2px solid #f44336;
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 20px;
+      color: #f44336;
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 1.6;
+    }
+
     button {
       width: 100%;
       padding: 18px;
@@ -120,48 +152,172 @@
       color: #000;
     }
     button:hover { background: #00c853; }
+    button:disabled { background: #555; color: #888; cursor: not-allowed; }
 
     a { display: block; margin-top: 15px; color: #888; text-decoration: none; font-size: 14px; }
     a:hover { color: #fff; }
+
+    /* МОДАЛКИ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: #1a1a1a;
+      padding: 25px;
+      border-radius: 16px;
+      border: 2px solid #00E676;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    .modal-title { color: #00E676; font-size: 22px; font-weight: 900; margin-bottom: 15px; }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      margin-bottom: 8px;
+    }
+    .btn-green { background: #4CAF50; color: #fff; }
+    .btn-red { background: #f44336; color: #fff; }
+    .btn-gray { background: #666; color: #fff; }
   </style>
 </head>
 <body>
 
+  <div class="admin-lock" onclick="openAdminLogin()" title="Админ-панель">🔒</div>
+
   <div class="card">
     <h1>💡 ПРЕДЛОЖИТЬ ОБНОВЛЕНИЕ</h1>
-    <p>Помогите нам стать лучше! Опишите вашу идею для сайта, сервера или бота</p>
     
-    <form action="https://api.web3forms.com/submit" method="POST">
-      <input type="hidden" name="access_key" value="42864224-6df0-4e25-8068-7b486cf314dd">
-      <input type="hidden" name="subject" value="Новое предложение для GrifMC PRO!">
-      <input type="hidden" name="redirect" value="https://danilka1809.github.io/reimagined-octo-dollop/">
+    <!-- СООБЩЕНИЕ О БЛОКИРОВКЕ -->
+    <div class="locked-msg" id="locked-msg" style="display:none;">
+      🚫 Приём предложений временно закрыт.<br>Загляните позже!
+    </div>
 
-      <label>👤 Ваш ник</label>
-      <input type="text" name="Ваш ник" placeholder="Введите ваш игровой никнейм" required>
+    <!-- ФОРМА -->
+    <div id="form-container">
+      <p>Помогите нам стать лучше! Опишите вашу идею для сайта, сервера или бота</p>
+      
+      <form action="https://api.web3forms.com/submit" method="POST">
+        <input type="hidden" name="access_key" value="42864224-6df0-4e25-8068-7b486cf314dd">
+        <input type="hidden" name="subject" value="Новое предложение для GrifMC PRO!">
+        <input type="hidden" name="redirect" value="https://danilka1809.github.io/reimagined-octo-dollop/">
 
-      <label>📝 Что бы вы хотели добавить или изменить?</label>
-      <textarea name="Предложение" placeholder="Опишите вашу идею как можно подробнее..." required></textarea>
+        <label>👤 Ваш ник</label>
+        <input type="text" name="Ваш ник" placeholder="Введите ваш игровой никнейм" required>
 
-      <label>📂 Обязательно выберите категорию:</label>
-      <div class="radio-group">
-        <label class="radio-option">
-          <input type="radio" name="Категория" value="Бот" required> 🤖 Бот
-        </label>
-        <label class="radio-option">
-          <input type="radio" name="Категория" value="Сайт" required> 🌐 Сайт
-        </label>
-        <label class="radio-option">
-          <input type="radio" name="Категория" value="Сервер" required> 🖥️ Сервер
-        </label>
-      </div>
+        <label>📝 Что бы вы хотели добавить или изменить?</label>
+        <textarea name="Предложение" placeholder="Опишите вашу идею..." required></textarea>
 
-      <div class="reward-msg">
-        ⭐ Мы очень благодарны, что вы нам помогаете!<br>На ваш ник будет начислена награда!
-      </div>
+        <label>📂 Обязательно выберите категорию:</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="Категория" value="Бот" required> 🤖 Бот
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="Категория" value="Сайт" required> 🌐 Сайт
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="Категория" value="Сервер" required> 🖥️ Сервер
+          </label>
+        </div>
 
-      <button type="submit">🚀 Отправить предложение</button>
-    </form>
+        <div class="reward-msg">
+          ⭐ Мы очень благодарны, что вы нам помогаете!<br>На ваш ник будет начислена награда!
+        </div>
+
+        <button type="submit">🚀 Отправить предложение</button>
+      </form>
+    </div>
     <a href="index.html">← На главную</a>
   </div>
+
+  <!-- МОДАЛКА ВВОДА КОДА -->
+  <div class="modal-overlay" id="login-modal">
+    <div class="modal-box">
+      <p class="modal-title">🔐 Введите код доступа</p>
+      <input type="password" id="admin-code-input" placeholder="Код" style="width:100%; padding:14px; background:#0a0a0a; border:1px solid #333; border-radius:10px; color:#fff; font-size:16px; text-align:center; margin-bottom:12px;">
+      <button class="btn btn-green" onclick="checkAdminCode()">🔓 Войти</button>
+      <p id="login-error" style="color:#f44336; display:none;">❌ Неверный код!</p>
+      <button class="btn btn-gray" onclick="closeAdminLogin()">✖ Отмена</button>
+    </div>
+  </div>
+
+  <!-- АДМИНКА -->
+  <div class="modal-overlay" id="admin-modal">
+    <div class="modal-box">
+      <p class="modal-title">🔧 Управление блокировкой</p>
+      <p id="admin-status" style="color:#4CAF50; font-size:16px; margin-bottom:15px;">🟢 Предложения открыты</p>
+      <button class="btn btn-red" id="toggle-btn" onclick="toggleLock()">🚫 ЗАБЛОКИРОВАТЬ</button>
+      <button class="btn btn-gray" onclick="closeAdmin()">✖ Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    var ADMIN_CODE = 'newsadmin2002';
+
+    // Проверяем состояние блокировки при загрузке
+    if (localStorage.getItem('suggest_locked') === 'true') {
+      document.getElementById('locked-msg').style.display = 'block';
+      document.getElementById('form-container').style.display = 'none';
+    }
+
+    function openAdminLogin() {
+      document.getElementById('login-modal').classList.add('active');
+    }
+    function closeAdminLogin() {
+      document.getElementById('login-modal').classList.remove('active');
+      document.getElementById('admin-code-input').value = '';
+      document.getElementById('login-error').style.display = 'none';
+    }
+    function checkAdminCode() {
+      if (document.getElementById('admin-code-input').value === ADMIN_CODE) {
+        document.getElementById('login-modal').classList.remove('active');
+        openAdmin();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    }
+    function openAdmin() {
+      updateAdminUI();
+      document.getElementById('admin-modal').classList.add('active');
+    }
+    function closeAdmin() {
+      document.getElementById('admin-modal').classList.remove('active');
+    }
+    function updateAdminUI() {
+      var locked = localStorage.getItem('suggest_locked') === 'true';
+      document.getElementById('admin-status').textContent = locked ? '🔴 Предложения ЗАБЛОКИРОВАНЫ' : '🟢 Предложения открыты';
+      document.getElementById('toggle-btn').textContent = locked ? '✅ РАЗБЛОКИРОВАТЬ' : '🚫 ЗАБЛОКИРОВАТЬ';
+    }
+    function toggleLock() {
+      var locked = localStorage.getItem('suggest_locked') === 'true';
+      if (locked) {
+        localStorage.setItem('suggest_locked', 'false');
+        document.getElementById('locked-msg').style.display = 'none';
+        document.getElementById('form-container').style.display = 'block';
+      } else {
+        localStorage.setItem('suggest_locked', 'true');
+        document.getElementById('locked-msg').style.display = 'block';
+        document.getElementById('form-container').style.display = 'none';
+      }
+      updateAdminUI();
+    }
+  </script>
 </body>
 </html>
