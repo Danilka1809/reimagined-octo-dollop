@@ -42,7 +42,6 @@
       backdrop-filter: blur(15px);
       border: 2px solid #4CAF50;
       box-shadow: 0 0 30px rgba(76, 175, 80, 0.4), 0 15px 40px rgba(0,0,0,0.8);
-      transition: all 0.5s ease;
     }
 
     .server-icon { font-size: 55px; margin-bottom: 12px; }
@@ -90,7 +89,6 @@
       cursor: pointer; margin-bottom: 22px; transition: transform 0.2s; font-family: inherit;
     }
     .ip-button:hover { transform: scale(1.02); }
-    .ip-hint { font-size: 12px; color: #888; margin-bottom: 22px; }
 
     .btn {
       display: block; width: 100%; padding: 16px; border: none;
@@ -105,6 +103,10 @@
     .btn-community { background: #9C27B0; }
     .btn-status { background: #00BCD4; color: #000; }
     .btn-report { background: #f44336; }
+    .btn-news { background: #2196F3; }
+    .btn-events { background: #FF5722; }
+    .btn-promo { background: #00BCD4; color: #000; }
+    .btn-wheel { background: #FFD700; color: #000; }
     .btn-suggest { background: #00E676; color: #000; }
 
     .footer-text { margin-top: 18px; font-size: 11px; color: #666; }
@@ -166,12 +168,16 @@
 
     <button class="ip-button" id="copyIpBtn">🌐 grifmcru.aternos.me:11782</button>
 
+    <a class="btn btn-news" href="news.html">📰 Новости сервера</a>
+    <a class="btn btn-events" href="events.html">📅 Ивенты и Вайп</a>
+    <a class="btn btn-promo" href="promo.html">🎟️ Промокоды</a>
+    <a class="btn btn-wheel" href="wheel.html">🎰 Колесо удачи</a>
     <button class="btn btn-rules" id="rulesBtn">📜 Правила сервера</button>
     <a class="btn btn-help" href="https://t.me/helperservera_bot" target="_blank">💬 Написать в поддержку</a>
     <button class="btn btn-community" id="communityBtn">👑 Наша команда</button>
     <button class="btn btn-status" id="statusBtn">🖥️ Статус сервера</button>
     <button class="btn btn-report" id="reportBtn">📋 Жалоба на игрока</button>
-    <button class="btn btn-suggest" onclick="window.location.href='suggest.html'">💡 Предложить обновление</button>
+    <a class="btn btn-suggest" href="suggest.html">💡 Предложить обновление</a>
 
     <p class="footer-text">© 2026 | GrifMC Pro | Все права защищены</p>
   </div>
@@ -181,8 +187,6 @@
     <div class="modal-content">
       <h3>📜 Правила сервера</h3>
       <p>Все правила, обжалование бана и помощь — <span class="modal-highlight">в нашем боте</span>!</p>
-      <p>👉 Перейдите в бота поддержки, чтобы:</p>
-      <p>• Прочитать правила<br>• Обжаловать наказание<br>• Связаться с админом</p>
       <a href="https://t.me/helperservera_bot" target="_blank">🤖 Перейти в бота</a>
       <button class="close-btn" data-close="rulesModal">✖ Закрыть</button>
     </div>
@@ -213,7 +217,7 @@
   <div class="modal" id="reportModal">
     <div class="modal-content">
       <h3>📋 Жалоба на игрока</h3>
-      <form id="reportForm" action="https://api.web3forms.com/submit" method="POST">
+      <form action="https://api.web3forms.com/submit" method="POST">
         <input type="hidden" name="access_key" value="42864224-6df0-4e25-8068-7b486cf314dd">
         <input type="hidden" name="subject" value="Новая жалоба с GrifMC PRO!">
         <input type="hidden" name="redirect" value="https://danilka1809.github.io/reimagined-octo-dollop/">
@@ -236,8 +240,8 @@
       alert('✅ IP скопирован!');
     });
 
-    function setupModal(openBtnId, modalId) {
-      document.getElementById(openBtnId).addEventListener('click', () => {
+    function setupModal(btnId, modalId) {
+      document.getElementById(btnId).addEventListener('click', () => {
         document.getElementById(modalId).classList.add('active');
       });
       document.querySelectorAll(`#${modalId} [data-close]`).forEach(btn => {
