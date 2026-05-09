@@ -149,7 +149,7 @@
       border-radius: 20px;
       font-size: 13px;
       font-weight: bold;
-      margin: 8px 0 0;
+      margin-top: 8px;
     }
     .rarity-common { background: #777; color: #fff; }
     .rarity-gold { background: #FFD700; color: #000; }
@@ -167,10 +167,9 @@
       100% { background-position: 0% 50%; }
     }
 
-    .back-link { display: block; margin-top: 20px; color: #888; text-decoration: none; font-size: 14px; }
-    .back-link:hover { color: #fff; }
+    a { display: block; margin-top: 20px; color: #888; text-decoration: none; font-size: 14px; }
+    a:hover { color: #fff; }
 
-    /* МОДАЛКИ */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -274,10 +273,9 @@
     <button class="spin-btn" id="spin-btn" onclick="spinWheel()">🎰 КРУТИТЬ</button>
     <div class="result-box" id="result-box"></div>
     
-    <a href="index.html" class="back-link">← На главную</a>
+    <a href="index.html">← На главную</a>
   </div>
 
-  <!-- МОДАЛКА ВВОДА КОДА -->
   <div class="modal-overlay" id="login-modal">
     <div class="modal-box">
       <p class="modal-title">🔐 Введите код доступа</p>
@@ -288,20 +286,19 @@
     </div>
   </div>
 
-  <!-- АДМИНКА -->
   <div class="modal-overlay" id="admin-modal">
     <div class="modal-box">
       <p class="modal-title">🔧 Админ-панель</p>
-      
-      <label style="text-align:center;">🎯 Добавить попытки (себе)</label>
+      <label>🎯 Добавить попытки</label>
       <div class="add-spins-row">
         <input type="number" id="add-spins-input" value="1" min="1" max="100">
         <button class="btn btn-gold" onclick="addSpins()">➕ Добавить</button>
       </div>
-      
-      <label style="text-align:center; margin-top:15px;">📦 Настройка предметов (название, шанс, редкость)</label>
+      <label style="margin-top:15px;">📦 Настройка предметов</label>
       <div id="admin-items"></div>
-      <button class="btn btn-green" onclick="saveItems()">💾 Сохранить всё</button>
+      <button class="btn btn-green" onclick="saveItems()">💾 Сгенерировать новый код</button>
+      <label style="margin-top:15px;">📋 Скопируй этот код и вставь в wheel.html</label>
+      <textarea id="generated-code" style="width:100%; height:120px; margin-top:8px; background:#000; color:#0f0; font-size:11px; font-family:monospace;" readonly></textarea>
       <button class="btn btn-gray" onclick="closeAdmin()">✖ Закрыть</button>
     </div>
   </div>
@@ -311,7 +308,8 @@
     var SPINS_PER_DAY = 5;
     var WEB3FORMS_KEY = '42864224-6df0-4e25-8068-7b486cf314dd';
 
-    var defaultItems = [
+    // ⚡ ВСТРОЕННЫЕ ПРЕДМЕТЫ (меняй здесь для всех!)
+    var EMBEDDED_ITEMS = [
       { name: 'Монеты 1.000', rarity: 'common', chance: 25 },
       { name: 'Монеты 5.000', rarity: 'common', chance: 20 },
       { name: 'Регион бесплатно', rarity: 'gold', chance: 12 },
@@ -329,27 +327,17 @@
       { name: 'Админ на час', rarity: 'rainbow', chance: 0.2 }
     ];
 
-    function getItems() {
-      var i = localStorage.getItem('wheel_items_v2');
-      return i ? JSON.parse(i) : JSON.parse(JSON.stringify(defaultItems));
-    }
-    function saveItemsToStorage(arr) { localStorage.setItem('wheel_items_v2', JSON.stringify(arr)); }
-
+    function getItems() { return EMBEDDED_ITEMS; }
     function getSpinsLeft() {
       var today = new Date().toDateString();
       var saved = localStorage.getItem('wheel_spins');
       if (!saved) return SPINS_PER_DAY;
       var data = JSON.parse(saved);
-      if (data.date !== today) return SPINS_PER_DAY;
-      return data.spins;
+      return (data.date === today) ? data.spins : SPINS_PER_DAY;
     }
     function setSpinsLeft(n) {
-      localStorage.setItem('wheel_spins', JSON.stringify({
-        date: new Date().toDateString(),
-        spins: Math.max(0, n)
-      }));
+      localStorage.setItem('wheel_spins', JSON.stringify({ date: new Date().toDateString(), spins: Math.max(0, n) }));
     }
-
     function updateUI() {
       var spins = getSpinsLeft();
       document.getElementById('spin-count').textContent = '🎯 Попыток: ' + spins;
@@ -362,160 +350,101 @@
       var items = getItems();
       var total = items.reduce(function(s, i){ return s + (i.chance || 0); }, 0) || 1;
       var colors = { common: '#888', gold: '#FFD700', diamond: '#00BCD4', rainbow: '#ff00ff' };
-
       ctx.clearRect(0, 0, 300, 300);
-      var cx = 150, cy = 150, r = 140;
-      var start = -Math.PI / 2;
-
+      var cx = 150, cy = 150, r = 140, start = -Math.PI/2;
       items.forEach(function(item, idx) {
-        var angle = (item.chance / total) * 2 * Math.PI;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, r, start, start + angle);
-        ctx.closePath();
-        ctx.fillStyle = colors[item.rarity] || '#888';
-        ctx.fill();
-        ctx.strokeStyle = '#0a0a0a';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(start + angle / 2);
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 13px Segoe UI';
-        ctx.textAlign = 'center';
-        ctx.fillText((idx + 1), r * 0.72, 6);
-        ctx.restore();
-
+        var angle = (item.chance/total)*2*Math.PI;
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+angle); ctx.closePath();
+        ctx.fillStyle = colors[item.rarity]||'#888'; ctx.fill();
+        ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 3; ctx.stroke();
+        ctx.save(); ctx.translate(cx,cy); ctx.rotate(start+angle/2);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Segoe UI'; ctx.textAlign = 'center';
+        ctx.fillText((idx+1), r*0.72, 6); ctx.restore();
         start += angle;
       });
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, 25, 0, 2 * Math.PI);
-      ctx.fillStyle = '#1a1a1a';
-      ctx.fill();
-      ctx.fillStyle = '#FFD700';
-      ctx.font = 'bold 14px Segoe UI';
-      ctx.textAlign = 'center';
-      ctx.fillText('🎰', cx, cy + 6);
+      ctx.beginPath(); ctx.arc(cx,cy,25,0,2*Math.PI); ctx.fillStyle='#1a1a1a'; ctx.fill();
+      ctx.fillStyle='#FFD700'; ctx.font='bold 14px Segoe UI'; ctx.textAlign='center'; ctx.fillText('🎰',cx,cy+6);
     }
 
     function spinWheel() {
       var nick = document.getElementById('nick-input').value.trim();
-      if (!nick) { alert('❌ Введи свой ник перед круткой!'); return; }
-
+      if (!nick) { alert('❌ Введи ник!'); return; }
       var spins = getSpinsLeft();
       if (spins <= 0) return;
-
-      setSpinsLeft(spins - 1);
-      updateUI();
+      setSpinsLeft(spins-1); updateUI();
       document.getElementById('result-box').style.display = 'none';
-
       var items = getItems();
-      var total = items.reduce(function(s, i){ return s + (i.chance || 0); }, 0) || 1;
-      var rand = Math.random() * total;
-      var cum = 0, winner = null, winIdx = 0;
-      for (var i = 0; i < items.length; i++) {
-        cum += items[i].chance;
-        if (rand <= cum) { winner = items[i]; winIdx = i; break; }
-      }
-      if (!winner) { winner = items[0]; winIdx = 0; }
-
-      // Отправка на почту
-      var formData = new FormData();
-      formData.append('access_key', WEB3FORMS_KEY);
-      formData.append('subject', '🎰 Новый выигрыш в Колесе удачи!');
-      formData.append('Ник игрока', nick);
-      formData.append('Награда', winner.name);
-      formData.append('Редкость', winner.rarity);
-      formData.append('Дата', new Date().toLocaleString('ru-RU'));
-      fetch('https://api.web3forms.com/submit', { method: 'POST', body: formData }).catch(function(){});
-
+      var total = items.reduce(function(s,i){return s+(i.chance||0);},0)||1;
+      var rand = Math.random()*total, cum=0, winner=null, winIdx=0;
+      for (var i=0; i<items.length; i++) { cum+=items[i].chance; if (rand<=cum) { winner=items[i]; winIdx=i; break; } }
+      if (!winner) { winner=items[0]; winIdx=0; }
+      var fd = new FormData();
+      fd.append('access_key',WEB3FORMS_KEY); fd.append('subject','🎰 Выигрыш в колесе!');
+      fd.append('Ник',nick); fd.append('Награда',winner.name); fd.append('Редкость',winner.rarity);
+      fetch('https://api.web3forms.com/submit',{method:'POST',body:fd}).catch(function(){});
       var canvas = document.getElementById('wheel-canvas');
-      var spinsCount = 6 + Math.floor(Math.random() * 5);
-      var segmentAngle = 360 / items.length;
-      var target = 360 * spinsCount + (360 - winIdx * segmentAngle) + Math.random() * segmentAngle * 0.8;
-      
-      canvas.style.transition = 'transform 4s cubic-bezier(0.15, 0.7, 0.1, 1)';
-      canvas.style.transform = 'rotate(' + target + 'deg)';
-
+      var seg = 360/items.length;
+      var target = 360*(6+Math.floor(Math.random()*5)) + (360-winIdx*seg) + Math.random()*seg*0.8;
+      canvas.style.transition = 'transform 4s cubic-bezier(0.15,0.7,0.1,1)';
+      canvas.style.transform = 'rotate('+target+'deg)';
       document.getElementById('spin-btn').disabled = true;
-
-      setTimeout(function() {
-        canvas.style.transition = 'none';
-        canvas.style.transform = 'rotate(0deg)';
-
-        var rarityNames = { common: '⭐ Обычная', gold: '🥇 Золотая', diamond: '💎 Алмазная', rainbow: '🌈 РАДУЖНАЯ' };
+      setTimeout(function(){
+        canvas.style.transition='none'; canvas.style.transform='rotate(0deg)';
+        var rn = {common:'⭐ Обычная',gold:'🥇 Золотая',diamond:'💎 Алмазная',rainbow:'🌈 РАДУЖНАЯ'};
         var box = document.getElementById('result-box');
-        box.innerHTML = '🎉 <b>' + winner.name + '</b><br><span class="rarity-badge rarity-' + winner.rarity + '">' + (rarityNames[winner.rarity] || winner.rarity) + '</span>';
-        box.style.display = 'block';
-        updateUI();
-      }, 4100);
+        box.innerHTML = '🎉 <b>'+winner.name+'</b><br><span class="rarity-badge rarity-'+winner.rarity+'">'+(rn[winner.rarity]||winner.rarity)+'</span>';
+        box.style.display='block'; updateUI();
+      },4100);
     }
 
-    // АДМИНКА
-    function openAdminLogin() {
-      document.getElementById('login-modal').classList.add('active');
-    }
-    function closeAdminLogin() {
+    function openAdminLogin(){document.getElementById('login-modal').classList.add('active');}
+    function closeAdminLogin(){
       document.getElementById('login-modal').classList.remove('active');
-      document.getElementById('admin-code-input').value = '';
-      document.getElementById('login-error').style.display = 'none';
+      document.getElementById('admin-code-input').value='';
+      document.getElementById('login-error').style.display='none';
     }
-    function checkAdminCode() {
-      if (document.getElementById('admin-code-input').value === ADMIN_CODE) {
-        document.getElementById('login-modal').classList.remove('active');
-        openAdmin();
-      } else {
-        document.getElementById('login-error').style.display = 'block';
-      }
+    function checkAdminCode(){
+      if(document.getElementById('admin-code-input').value===ADMIN_CODE){
+        document.getElementById('login-modal').classList.remove('active'); openAdmin();
+      }else{document.getElementById('login-error').style.display='block';}
     }
-    function openAdmin() {
-      var items = getItems();
-      var html = '';
-      items.forEach(function(item, i) {
-        html += '<div class="item-row">';
-        html += '<div class="item-num">' + (i+1) + '</div>';
-        html += '<input value="' + item.name + '" data-idx="' + i + '" data-field="name">';
-        html += '<input type="number" value="' + item.chance + '" data-idx="' + i + '" data-field="chance" style="width:65px;" step="0.1">';
-        html += '<select data-idx="' + i + '" data-field="rarity">';
-        html += '<option value="common"' + (item.rarity==='common'?' selected':'') + '>Обычная</option>';
-        html += '<option value="gold"' + (item.rarity==='gold'?' selected':'') + '>Золотая</option>';
-        html += '<option value="diamond"' + (item.rarity==='diamond'?' selected':'') + '>Алмазная</option>';
-        html += '<option value="rainbow"' + (item.rarity==='rainbow'?' selected':'') + '>РАДУЖНАЯ</option>';
-        html += '</select>';
-        html += '</div>';
+    function openAdmin(){
+      var items=getItems(), html='';
+      items.forEach(function(item,i){
+        html+='<div class="item-row"><div class="item-num">'+(i+1)+'</div>';
+        html+='<input value="'+item.name+'" data-idx="'+i+'" data-field="name">';
+        html+='<input type="number" value="'+item.chance+'" data-idx="'+i+'" data-field="chance" style="width:65px;" step="0.1">';
+        html+='<select data-idx="'+i+'" data-field="rarity">';
+        html+='<option value="common"'+(item.rarity==='common'?' selected':'')+'>Обычная</option>';
+        html+='<option value="gold"'+(item.rarity==='gold'?' selected':'')+'>Золотая</option>';
+        html+='<option value="diamond"'+(item.rarity==='diamond'?' selected':'')+'>Алмазная</option>';
+        html+='<option value="rainbow"'+(item.rarity==='rainbow'?' selected':'')+'>РАДУЖНАЯ</option>';
+        html+='</select></div>';
       });
-      document.getElementById('admin-items').innerHTML = html;
-      document.getElementById('add-spins-input').value = 1;
+      document.getElementById('admin-items').innerHTML=html;
       document.getElementById('admin-modal').classList.add('active');
     }
-    function closeAdmin() {
-      document.getElementById('admin-modal').classList.remove('active');
-    }
-    function saveItems() {
-      var inputs = document.querySelectorAll('#admin-items [data-idx]');
-      var items = getItems();
-      inputs.forEach(function(el) {
-        var idx = parseInt(el.dataset.idx);
-        var field = el.dataset.field;
-        items[idx][field] = (field === 'chance') ? (parseFloat(el.value) || 0) : el.value;
+    function closeAdmin(){document.getElementById('admin-modal').classList.remove('active');}
+    function saveItems(){
+      var inputs=document.querySelectorAll('#admin-items [data-idx]');
+      var items=[];
+      inputs.forEach(function(el){
+        var idx=parseInt(el.dataset.idx), field=el.dataset.field;
+        if(!items[idx]) items[idx]={name:'',rarity:'common',chance:0};
+        items[idx][field]=(field==='chance')?(parseFloat(el.value)||0):el.value;
       });
-      saveItemsToStorage(items);
-      drawWheel();
-      alert('✅ Предметы сохранены!');
+      var code = 'var EMBEDDED_ITEMS = ' + JSON.stringify(items, null, 2) + ';';
+      document.getElementById('generated-code').value = code;
+      alert('✅ Скопируй код из поля и вставь его в wheel.html вместо строчки "var EMBEDDED_ITEMS = [...]"');
     }
-    function addSpins() {
-      var add = parseInt(document.getElementById('add-spins-input').value) || 1;
-      var current = getSpinsLeft();
-      setSpinsLeft(current + add);
+    function addSpins(){
+      var add = parseInt(document.getElementById('add-spins-input').value)||1;
+      setSpinsLeft(getSpinsLeft()+add);
       updateUI();
-      document.getElementById('add-spins-input').value = 1;
+      document.getElementById('add-spins-input').value=1;
     }
 
-    drawWheel();
-    updateUI();
+    drawWheel(); updateUI();
   </script>
 </body>
 </html>
