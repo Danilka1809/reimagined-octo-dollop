@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GrifMC Pro — Предложить обновление</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #fff;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: 
+        radial-gradient(ellipse at 20% 50%, rgba(0, 230, 118, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(0, 200, 255, 0.05) 0%, transparent 50%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .card {
+      position: relative;
+      z-index: 10;
+      max-width: 460px;
+      width: 100%;
+      padding: 35px 30px;
+      border-radius: 24px;
+      text-align: center;
+      background: rgba(20, 20, 20, 0.9);
+      backdrop-filter: blur(20px);
+      border: 2px solid #00E676;
+      box-shadow: 0 0 40px rgba(0, 230, 118, 0.3);
+    }
+
+    @keyframes rgb {
+      0% { color: #ff4d4d; } 25% { color: #4dff4d; }
+      50% { color: #4dd2ff; } 75% { color: #ff4dff; }
+      100% { color: #ff4d4d; }
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      animation: rgb 3s infinite;
+      margin-bottom: 8px;
+    }
+    p { color: #aaa; font-size: 13px; margin-bottom: 25px; }
+
+    label {
+      display: block;
+      text-align: left;
+      color: #ccc;
+      font-size: 15px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 22px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+    }
+    textarea { resize: vertical; min-height: 140px; }
+
+    .radio-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .radio-option {
+      flex: 1;
+      background: #2a2a2a;
+      padding: 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #ccc;
+      border: 2px solid transparent;
+      text-align: center;
+    }
+    .radio-option:has(input:checked) {
+      border-color: #00E676;
+      color: #00E676;
+      background: #1a3a1a;
+    }
+    .radio-option input { display: none; }
+
+    .reward-msg {
+      color: #FFD700;
+      font-size: 14px;
+      margin-bottom: 20px;
+      background: rgba(255,215,0,0.1);
+      padding: 12px;
+      border-radius: 10px;
+      line-height: 1.6;
+    }
+
+    button {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+      background: #00E676;
+      color: #000;
+    }
+    button:hover { background: #00c853; }
+
+    a { display: block; margin-top: 15px; color: #888; text-decoration: none; font-size: 14px; }
+    a:hover { color: #fff; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>💡 ПРЕДЛОЖИТЬ ОБНОВЛЕНИЕ</h1>
+    <p>Помогите нам стать лучше! Опишите вашу идею для сайта, сервера или бота</p>
+    
+    <form action="https://api.web3forms.com/submit" method="POST">
+      <input type="hidden" name="access_key" value="42864224-6df0-4e25-8068-7b486cf314dd">
+      <input type="hidden" name="subject" value="Новое предложение для GrifMC PRO!">
+      <input type="hidden" name="redirect" value="https://danilka1809.github.io/reimagined-octo-dollop/">
+
+      <label>👤 Ваш ник</label>
+      <input type="text" name="Ваш ник" placeholder="Введите ваш игровой никнейм" required>
+
+      <label>📝 Что бы вы хотели добавить или изменить?</label>
+      <textarea name="Предложение" placeholder="Опишите вашу идею как можно подробнее..." required></textarea>
+
+      <label>📂 Обязательно выберите категорию:</label>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="Категория" value="Бот" required> 🤖 Бот
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="Категория" value="Сайт" required> 🌐 Сайт
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="Категория" value="Сервер" required> 🖥️ Сервер
+        </label>
+      </div>
+
+      <div class="reward-msg">
+        ⭐ Мы очень благодарны, что вы нам помогаете!<br>На ваш ник будет начислена награда!
+      </div>
+
+      <button type="submit">🚀 Отправить предложение</button>
+    </form>
+    <a href="index.html">← На главную</a>
+  </div>
+</body>
+</html>
