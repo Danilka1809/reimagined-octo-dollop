@@ -2,62 +2,258 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dim's Web — GrifMC Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GrifMC Pro — Главная</title>
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: Arial, sans-serif;
-      background: #1a1a1a;
-      color: #fff;
-      max-width: 600px;
-      margin: 0 auto;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       padding: 20px;
+      background: #0a0a0a;
+      color: #fff;
+      overflow-x: hidden;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: 
+        radial-gradient(ellipse at 20% 50%, rgba(76, 175, 80, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(33, 150, 243, 0.06) 0%, transparent 50%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .main-card {
+      position: relative;
+      z-index: 10;
+      max-width: 420px;
+      width: 100%;
+      padding: 30px 25px 25px;
+      border-radius: 24px;
+      text-align: center;
+      background: rgba(20, 20, 20, 0.85);
+      backdrop-filter: blur(15px);
+      border: 2px solid #4CAF50;
+      box-shadow: 0 0 30px rgba(76, 175, 80, 0.4), 0 15px 40px rgba(0,0,0,0.8);
+      transition: all 0.5s ease;
+    }
+
+    .server-icon { font-size: 55px; margin-bottom: 12px; }
+    @keyframes rgb {
+      0% { color: #ff4d4d; } 25% { color: #4dff4d; }
+      50% { color: #4dd2ff; } 75% { color: #ff4dff; }
+      100% { color: #ff4d4d; }
+    }
+    .glitch-title {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      animation: rgb 3s infinite;
+      margin-bottom: 8px;
+    }
+    .server-subtitle { color: #aaa; font-size: 13px; margin-bottom: 18px; }
+
+    .status-box {
+      background: rgba(0,0,0,0.5); padding: 12px 20px; border-radius: 30px;
+      display: inline-flex; align-items: center; gap: 10px;
+      margin-bottom: 16px; border: 1px solid #333;
+    }
+    .status-dot {
+      width: 12px; height: 12px; background: #4CAF50; border-radius: 50%;
+      animation: pulse 1.5s infinite; box-shadow: 0 0 8px #4CAF50;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .status-text { font-weight: 700; font-size: 16px; color: #4CAF50; }
+
+    .marquee-box {
+      background: rgba(0,0,0,0.5); border: 1px solid #333;
+      border-radius: 10px; padding: 10px; margin: 15px 0 18px;
+      overflow: hidden; white-space: nowrap;
+    }
+    .marquee-text {
+      display: inline-block; animation: marquee 12s linear infinite;
+      color: #FFD700; font-size: 13px; font-weight: 600;
+    }
+    @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+    .ip-button {
+      display: block; width: 100%; padding: 18px; background: #2196F3;
+      color: #fff; border: none; border-radius: 14px;
+      font-size: 20px; font-weight: 700; letter-spacing: 1px;
+      cursor: pointer; margin-bottom: 22px; transition: transform 0.2s; font-family: inherit;
+    }
+    .ip-button:hover { transform: scale(1.02); }
+    .ip-hint { font-size: 12px; color: #888; margin-bottom: 22px; }
+
+    .btn {
+      display: block; width: 100%; padding: 16px; border: none;
+      border-radius: 14px; font-size: 17px; font-weight: 700;
+      cursor: pointer; margin-bottom: 12px; transition: 0.25s;
+      font-family: inherit; text-decoration: none; color: #fff;
+      background: #607D8B; text-align: center;
+    }
+    .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+    .btn-rules { background: #FF9800; color: #000; }
+    .btn-help { background: #4CAF50; }
+    .btn-community { background: #9C27B0; }
+    .btn-status { background: #00BCD4; color: #000; }
+    .btn-report { background: #f44336; }
+    .btn-suggest { background: #00E676; color: #000; }
+
+    .footer-text { margin-top: 18px; font-size: 11px; color: #666; }
+
+    .modal {
+      display: none; position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%; background: rgba(0,0,0,0.85);
+      z-index: 9999; justify-content: center; align-items: center; padding: 20px;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: #1a1a1a; padding: 30px 25px; border-radius: 20px;
+      max-width: 380px; width: 100%; border: 2px solid #FF9800;
+      text-align: center; max-height: 80vh; overflow-y: auto;
+    }
+    .modal-content h3 { color: #FF9800; font-size: 20px; font-weight: 700; margin-bottom: 18px; }
+    .modal-content p { color: #ccc; font-size: 15px; line-height: 1.7; margin-bottom: 12px; }
+    .modal-highlight { color: #4CAF50; font-weight: 700; }
+    .modal-content input, .modal-content textarea {
+      width: 100%; padding: 12px; margin-bottom: 15px;
+      background: #2a2a2a; border: 1px solid #444; border-radius: 8px;
+      color: #fff; font-size: 15px; font-family: inherit;
+    }
+    .modal-content textarea { resize: vertical; min-height: 80px; }
+    .modal-content button, .modal-content a {
+      display: block; width: 100%; padding: 14px; border: none;
+      border-radius: 12px; font-size: 16px; font-weight: 700;
+      cursor: pointer; margin-top: 16px; font-family: inherit;
+      text-decoration: none; color: #000; background: #FF9800;
       text-align: center;
     }
-    h1 { color: #4CAF50; font-size: 32px; }
-    h2 { color: #FF9800; margin-top: 30px; }
-    a { color: #00BCD4; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    ul { text-align: left; display: inline-block; }
-    li { margin: 8px 0; font-size: 16px; }
-    .section {
-      background: #2a2a2a;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 20px 0;
+    .modal-content button.close-btn { background: transparent; border: 1px solid #666; color: #ccc; margin-top: 8px; }
+    .fab {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 56px; height: 56px; background: #4CAF50;
+      border-radius: 50%; box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; color: #fff; text-decoration: none;
+      z-index: 999; transition: 0.25s;
     }
+    .fab:hover { transform: scale(1.1); background: #43A047; }
   </style>
 </head>
 <body>
 
-  <h1>🎮 Dim's Web</h1>
+  <div class="main-card">
+    <div class="server-icon">🎮</div>
+    <h1 class="glitch-title">GRIFMC PRO</h1>
+    <p class="server-subtitle">Вся информация о сервере</p>
 
-  <p>
-    Привет! Это сайт сервера <b>GrifMC Pro</b>.
-    <a href="https://sites.google.com/view/grifmcru">Зайти на GrifMC Pro!</a>
-  </p>
+    <div class="status-box">
+      <span class="status-dot"></span>
+      <span class="status-text">Сервер онлайн</span>
+    </div>
 
-  <div class="section">
-    <h2>Что есть на сервере</h2>
-    <ul>
-      <li>🎮 PvP-арена</li>
-      <li>🏠 Приватные регионы</li>
-      <li>💰 Экономика</li>
-      <li><a href="https://sites.google.com/view/grifmcru">🎉 Еженедельные ивенты</a></li>
-    </ul>
+    <div class="marquee-box">
+      <span class="marquee-text">🎉 Все ивенты и новости смотрите в ТГ-канале сервера! Подписывайся!</span>
+    </div>
+
+    <button class="ip-button" id="copyIpBtn">🌐 grifmcru.aternos.me:11782</button>
+
+    <button class="btn btn-rules" id="rulesBtn">📜 Правила сервера</button>
+    <a class="btn btn-help" href="https://t.me/helperservera_bot" target="_blank">💬 Написать в поддержку</a>
+    <button class="btn btn-community" id="communityBtn">👑 Наша команда</button>
+    <button class="btn btn-status" id="statusBtn">🖥️ Статус сервера</button>
+    <button class="btn btn-report" id="reportBtn">📋 Жалоба на игрока</button>
+    <button class="btn btn-suggest" onclick="window.location.href='suggest.html'">💡 Предложить обновление</button>
+
+    <p class="footer-text">© 2026 | GrifMC Pro | Все права защищены</p>
   </div>
 
-  <div class="section">
-    <h2>Полезные ссылки</h2>
-    <ul>
-      <li><a href="#">🌐 Главная страница</a></li>
-      <li><a href="#">📰 Новости сервера</a></li>
-      <li><a href="#">🎟️ Промокоды</a></li>
-      <li><a href="#">🎰 Колесо удачи</a></li>
-    </ul>
+  <!-- Модальные окна -->
+  <div class="modal" id="rulesModal">
+    <div class="modal-content">
+      <h3>📜 Правила сервера</h3>
+      <p>Все правила, обжалование бана и помощь — <span class="modal-highlight">в нашем боте</span>!</p>
+      <p>👉 Перейдите в бота поддержки, чтобы:</p>
+      <p>• Прочитать правила<br>• Обжаловать наказание<br>• Связаться с админом</p>
+      <a href="https://t.me/helperservera_bot" target="_blank">🤖 Перейти в бота</a>
+      <button class="close-btn" data-close="rulesModal">✖ Закрыть</button>
+    </div>
   </div>
 
-  <p style="margin-top: 30px; color: #888;">© 2026 Dim's Web | GrifMC Pro</p>
+  <div class="modal" id="communityModal">
+    <div class="modal-content">
+      <h3 style="animation: rgb 3s infinite;">👑 Наша команда</h3>
+      <p style="text-align:center; margin:15px 0 5px; color:#FFD700;">🏆 <b>Создатель сервера</b></p>
+      <p style="text-align:center; font-size:22px; font-weight:bold; animation: rgb 3s infinite; background:#2a2a2a; padding:12px; border-radius:10px; margin-bottom:20px;">pley1657</p>
+      <p style="text-align:center; margin:10px 0; color:#aaa;">🛡️ <b>Модераторы</b></p>
+      <p style="text-align:center; color:#ccc; background:#2a2a2a; padding:10px; border-radius:10px;"><i>Пока никого нет</i></p>
+      <button class="close-btn" data-close="communityModal">✖ Закрыть</button>
+    </div>
+  </div>
 
+  <div class="modal" id="statusModal">
+    <div class="modal-content">
+      <h3>🖥️ Статус сервера</h3>
+      <p>🌐 <b>IP:</b> <span class="modal-highlight">grifmcru.aternos.me:11782</span></p>
+      <p>📦 <b>Версия:</b> <span class="modal-highlight">1.20.1</span></p>
+      <p>🟢 <b>Статус:</b> <span class="modal-highlight">Онлайн</span></p>
+      <p>🤖 <b>Бот:</b> <span class="modal-highlight">@helperservera_bot</span></p>
+      <button class="close-btn" data-close="statusModal">✖ Закрыть</button>
+    </div>
+  </div>
+
+  <div class="modal" id="reportModal">
+    <div class="modal-content">
+      <h3>📋 Жалоба на игрока</h3>
+      <form id="reportForm" action="https://api.web3forms.com/submit" method="POST">
+        <input type="hidden" name="access_key" value="42864224-6df0-4e25-8068-7b486cf314dd">
+        <input type="hidden" name="subject" value="Новая жалоба с GrifMC PRO!">
+        <input type="hidden" name="redirect" value="https://danilka1809.github.io/reimagined-octo-dollop/">
+        <input type="text" name="Ваш ник" placeholder="Ваш ник в игре" required>
+        <input type="text" name="Ник нарушителя" placeholder="Ник нарушителя" required>
+        <textarea name="Причина жалобы" placeholder="Опишите..." required></textarea>
+        <input type="date" name="Дата нарушения" required>
+        <input type="email" name="Ваша почта для связи" placeholder="Ваш email для ответа" required>
+        <button type="submit">📤 Отправить жалобу</button>
+      </form>
+      <button class="close-btn" data-close="reportModal">✖ Закрыть</button>
+    </div>
+  </div>
+
+  <a class="fab" href="https://t.me/helperservera_bot" target="_blank" title="Написать в бота">💬</a>
+
+  <script>
+    document.getElementById('copyIpBtn').addEventListener('click', function() {
+      navigator.clipboard.writeText('grifmcru.aternos.me:11782');
+      alert('✅ IP скопирован!');
+    });
+
+    function setupModal(openBtnId, modalId) {
+      document.getElementById(openBtnId).addEventListener('click', () => {
+        document.getElementById(modalId).classList.add('active');
+      });
+      document.querySelectorAll(`#${modalId} [data-close]`).forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById(modalId).classList.remove('active');
+        });
+      });
+      document.getElementById(modalId).addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('active');
+      });
+    }
+
+    setupModal('rulesBtn', 'rulesModal');
+    setupModal('communityBtn', 'communityModal');
+    setupModal('statusBtn', 'statusModal');
+    setupModal('reportBtn', 'reportModal');
+  </script>
 </body>
 </html>
