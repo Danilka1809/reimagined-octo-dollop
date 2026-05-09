@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GrifMC Pro — Новости</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -35,29 +35,190 @@
       padding: 20px 25px;
       margin-bottom: 15px;
     }
-    .news-date { color: #2196F3; font-size: 13px; font-weight: bold; margin-bottom: 8px; }
+    .news-date { color: #2196F3; font-size: 13px; margin-bottom: 8px; }
     .news-title { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
-    .news-text { color: #ccc; font-size: 14px; line-height: 1.7; }
+    .news-text { color: #ccc; font-size: 14px; line-height: 1.7; white-space: pre-line; }
     a { display: block; text-align: center; margin-top: 20px; color: #4CAF50; font-size: 16px; }
+
+    .admin-lock {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 42px;
+      height: 42px;
+      background: rgba(20,20,20,0.8);
+      border: 1px solid #444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 100;
+      opacity: 0.5;
+      transition: all 0.3s;
+    }
+    .admin-lock:hover { opacity: 1; border-color: #2196F3; }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: #1a1a1a;
+      padding: 25px;
+      border-radius: 16px;
+      border: 2px solid #2196F3;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-title { color: #2196F3; font-size: 22px; font-weight: 900; margin-bottom: 15px; }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      margin-bottom: 8px;
+    }
+    .btn-green { background: #4CAF50; color: #fff; }
+    .btn-gray { background: #666; color: #fff; }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+    }
+    textarea { resize: vertical; min-height: 100px; text-align: left; }
+    label {
+      display: block;
+      text-align: left;
+      color: #ccc;
+      font-size: 13px;
+      font-weight: bold;
+      margin: 8px 0 4px;
+    }
   </style>
 </head>
 <body>
+
+  <div class="admin-lock" onclick="openAdminLogin()" title="Админ-панель">🔒</div>
+
   <div class="container">
     <h1>📰 НОВОСТИ СЕРВЕРА</h1>
-    
-    <div class="news-card">
-      <div class="news-date">📅 09.05.2026</div>
-      <div class="news-title">🚀 Сайт запущен на GitHub!</div>
-      <div class="news-text">Теперь все страницы работают для всех игроков. Следите за обновлениями!</div>
-    </div>
-    
-    <div class="news-card">
-      <div class="news-date">📅 Скоро</div>
-      <div class="news-title">Готовим крупное обновление</div>
-      <div class="news-text">Следите за новостями в нашем Telegram-канале @grifmcproservaternos</div>
-    </div>
-
+    <div id="news-list"></div>
     <a href="index.html">← На главную</a>
   </div>
+
+  <!-- МОДАЛКА ВВОДА КОДА -->
+  <div class="modal-overlay" id="login-modal">
+    <div class="modal-box">
+      <p class="modal-title">🔐 Введите код доступа</p>
+      <input type="password" id="admin-code-input" placeholder="Код">
+      <button class="btn btn-green" onclick="checkAdminCode()">🔓 Войти</button>
+      <p id="login-error" style="color:#f44336; display:none;">❌ Неверный код!</p>
+      <button class="btn btn-gray" onclick="closeAdminLogin()">✖ Отмена</button>
+    </div>
+  </div>
+
+  <!-- АДМИНКА -->
+  <div class="modal-overlay" id="admin-modal">
+    <div class="modal-box">
+      <p class="modal-title">📝 Управление новостями</p>
+      <label>📌 Заголовок</label>
+      <input type="text" id="news-title-input" placeholder="Заголовок">
+      <label>📝 Текст</label>
+      <textarea id="news-text-input" placeholder="Текст новости..."></textarea>
+      <button class="btn btn-green" onclick="addNews()">💾 Добавить новость</button>
+
+      <p class="modal-title" style="margin-top:20px;">📋 Сгенерированный код (скопируй и вставь в news.html)</p>
+      <textarea id="generated-code" style="width:100%; height:150px; background:#000; color:#0f0; font-size:11px; font-family:monospace;" readonly></textarea>
+
+      <button class="btn btn-gray" onclick="closeAdmin()">✖ Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    var ADMIN_CODE = 'newsadmin2002';
+
+    // ⚡ ВСТРОЕННЫЕ НОВОСТИ (меняй здесь для всех!)
+    var EMBEDDED_NEWS = [
+      { title: '🚀 Сайт запущен на GitHub!', text: 'Теперь все страницы работают для всех игроков.', date: '2026-05-09' },
+      { title: 'Готовим крупное обновление', text: 'Следите за новостями в нашем Telegram-канале.', date: '2026-05-10' }
+    ];
+
+    function renderNews() {
+      var list = document.getElementById('news-list');
+      if (EMBEDDED_NEWS.length === 0) {
+        list.innerHTML = '<p style="text-align:center; color:#888;">Пока новостей нет.</p>';
+        return;
+      }
+      var html = '';
+      EMBEDDED_NEWS.forEach(function(item) {
+        html += '<div class="news-card">';
+        html += '<div class="news-date">📅 ' + new Date(item.date).toLocaleDateString('ru-RU') + '</div>';
+        html += '<div class="news-title">' + item.title + '</div>';
+        html += '<div class="news-text">' + item.text + '</div>';
+        html += '</div>';
+      });
+      list.innerHTML = html;
+    }
+
+    function addNews() {
+      var title = document.getElementById('news-title-input').value.trim();
+      var text = document.getElementById('news-text-input').value.trim();
+      if (!title || !text) { alert('Заполни поля!'); return; }
+      EMBEDDED_NEWS.push({ title: title, text: text, date: new Date().toISOString().split('T')[0] });
+      document.getElementById('news-title-input').value = '';
+      document.getElementById('news-text-input').value = '';
+      renderNews();
+      generateCode();
+    }
+
+    function generateCode() {
+      var code = "var EMBEDDED_NEWS = " + JSON.stringify(EMBEDDED_NEWS, null, 2) + ";";
+      document.getElementById('generated-code').value = code;
+    }
+
+    function openAdminLogin() { document.getElementById('login-modal').classList.add('active'); }
+    function closeAdminLogin() {
+      document.getElementById('login-modal').classList.remove('active');
+      document.getElementById('admin-code-input').value = '';
+      document.getElementById('login-error').style.display = 'none';
+    }
+    function checkAdminCode() {
+      if (document.getElementById('admin-code-input').value === ADMIN_CODE) {
+        document.getElementById('login-modal').classList.remove('active');
+        document.getElementById('admin-modal').classList.add('active');
+        generateCode();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    }
+    function closeAdmin() { document.getElementById('admin-modal').classList.remove('active'); }
+
+    renderNews();
+  </script>
 </body>
 </html>
