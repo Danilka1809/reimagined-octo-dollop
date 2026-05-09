@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GrifMC Pro — Ивенты и Вайп</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #fff;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: 
+        radial-gradient(ellipse at 20% 50%, rgba(255, 100, 0, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(255, 50, 50, 0.05) 0%, transparent 50%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .admin-lock {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 42px;
+      height: 42px;
+      background: rgba(20,20,20,0.8);
+      border: 1px solid #444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 100;
+      opacity: 0.5;
+      transition: all 0.3s;
+    }
+    .admin-lock:hover { opacity: 1; border-color: #FF5722; }
+
+    .main-card {
+      position: relative;
+      z-index: 10;
+      max-width: 480px;
+      width: 100%;
+      padding: 30px 25px;
+      border-radius: 24px;
+      text-align: center;
+      background: rgba(20, 20, 20, 0.9);
+      backdrop-filter: blur(20px);
+      border: 2px solid #FF5722;
+      box-shadow: 0 0 40px rgba(255, 87, 34, 0.3);
+    }
+
+    @keyframes rgb {
+      0% { color: #ff4d4d; } 25% { color: #ff9800; }
+      50% { color: #ffd700; } 75% { color: #ff9800; }
+      100% { color: #ff4d4d; }
+    }
+    .rgb-title {
+      font-size: 28px;
+      font-weight: 900;
+      animation: rgb 3s infinite;
+      margin-bottom: 20px;
+    }
+
+    .wipe-section {
+      background: rgba(255, 20, 20, 0.1);
+      border: 2px solid #f44336;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+    .wipe-label {
+      font-size: 14px;
+      color: #f44336;
+      font-weight: bold;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+    .wipe-timer {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .time-block {
+      background: #1a1a1a;
+      border: 1px solid #f44336;
+      border-radius: 12px;
+      padding: 15px 10px;
+      min-width: 65px;
+    }
+    .time-number { font-size: 30px; font-weight: 900; color: #fff; }
+    .time-label { font-size: 11px; color: #aaa; margin-top: 5px; }
+
+    .events-title { font-size: 20px; font-weight: 900; color: #FF9800; margin-bottom: 15px; }
+    .event-item {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 10px;
+      text-align: left;
+      position: relative;
+    }
+    .event-date { color: #FF9800; font-weight: bold; font-size: 13px; margin-bottom: 5px; }
+    .event-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
+    .event-desc { color: #aaa; font-size: 13px; }
+    .event-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+    .tag-pvp { background: #f44336; color: #fff; }
+    .tag-build { background: #2196F3; color: #fff; }
+    .tag-party { background: #FF9800; color: #000; }
+    .tag-other { background: #4CAF50; color: #fff; }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .btn-save { background: #4CAF50; color: #fff; }
+    .btn-back { background: #666; color: #fff; }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 14px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+    }
+    textarea { resize: vertical; min-height: 60px; text-align: left; }
+    label {
+      display: block;
+      text-align: left;
+      color: #ccc;
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: #1a1a1a;
+      padding: 25px;
+      border-radius: 16px;
+      border: 2px solid #FF5722;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-title { color: #FF5722; font-size: 22px; font-weight: 900; margin-bottom: 15px; }
+
+    a { display: block; margin-top: 20px; color: #888; text-decoration: none; font-size: 14px; }
+    a:hover { color: #fff; }
+  </style>
+</head>
+<body>
+
+  <div class="admin-lock" onclick="openAdminLogin()" title="Админ-панель">🔒</div>
+
+  <div class="main-card">
+    <h1 class="rgb-title">📅 РАСПИСАНИЕ ИВЕНТОВ</h1>
+
+    <div class="wipe-section">
+      <p class="wipe-label">⏳ ДО СЛЕДУЮЩЕГО ВАЙПА</p>
+      <div class="wipe-timer" id="wipe-timer">
+        <div class="time-block"><div class="time-number" id="days">00</div><div class="time-label">Дней</div></div>
+        <div class="time-block"><div class="time-number" id="hours">00</div><div class="time-label">Часов</div></div>
+        <div class="time-block"><div class="time-number" id="minutes">00</div><div class="time-label">Минут</div></div>
+        <div class="time-block"><div class="time-number" id="seconds">00</div><div class="time-label">Секунд</div></div>
+      </div>
+      <p style="color:#aaa; font-size:13px;" id="wipe-date-text">Дата не задана</p>
+    </div>
+
+    <p class="events-title">🎯 Ближайшие ивенты</p>
+    <div id="events-list"><p style="color:#888;">Пока нет ивентов</p></div>
+
+    <a href="index.html">← На главную</a>
+  </div>
+
+  <!-- МОДАЛКА ВВОДА КОДА -->
+  <div class="modal-overlay" id="login-modal">
+    <div class="modal-box">
+      <p class="modal-title">🔐 Введите код доступа</p>
+      <input type="password" id="admin-code-input" placeholder="Код" style="width:100%; padding:14px; background:#0a0a0a; border:1px solid #333; border-radius:10px; color:#fff; font-size:16px; text-align:center; margin-bottom:12px;">
+      <button class="btn btn-save" onclick="checkAdminCode()">🔓 Войти</button>
+      <p id="login-error" style="color:#f44336; display:none;">❌ Неверный код!</p>
+      <button class="btn btn-back" onclick="closeAdminLogin()">✖ Отмена</button>
+    </div>
+  </div>
+
+  <!-- АДМИНКА -->
+  <div class="modal-overlay" id="admin-modal">
+    <div class="modal-box">
+      <p class="modal-title">🔧 Управление</p>
+      <label>📅 Дата вайпа</label>
+      <input type="datetime-local" id="wipe-date-input">
+      <button class="btn btn-save" onclick="setWipeDate()">💾 Сохранить дату и сгенерировать код</button>
+      
+      <label style="margin-top:15px;">📋 Код для вставки (скопируй и вставь в файл)</label>
+      <textarea id="wipe-code" style="width:100%; height:60px; background:#000; color:#0f0; font-size:11px; font-family:monospace;" readonly></textarea>
+
+      <p class="modal-title" style="margin-top:20px;">➕ Добавить ивент</p>
+      <label>🎯 Название</label>
+      <input type="text" id="event-name" placeholder="PvP Турнир">
+      <label>📝 Описание</label>
+      <textarea id="event-desc" placeholder="Подробности..."></textarea>
+      <label>📅 Дата</label>
+      <input type="date" id="event-date">
+      <label>🏷️ Тип</label>
+      <select id="event-type">
+        <option value="pvp">⚔️ PvP</option>
+        <option value="build">🏠 Стройка</option>
+        <option value="party">🎉 Праздник</option>
+        <option value="other">📌 Другое</option>
+      </select>
+      <button class="btn btn-save" onclick="addEvent()">💾 Сохранить и сгенерировать полный код</button>
+      
+      <label style="margin-top:15px;">📋 Полный код страницы (скопируй и вставь в events.html)</label>
+      <textarea id="full-code" style="width:100%; height:150px; background:#000; color:#0f0; font-size:10px; font-family:monospace;" readonly></textarea>
+      
+      <button class="btn btn-back" onclick="closeAdmin()">🚪 Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    var ADMIN_CODE = 'vaipadmpanel2002';
+
+    // ⚡ ВСТРОЕННЫЕ ДАННЫЕ (меняй здесь для всех!)
+    var EMBEDDED_WIPE_DATE = '';
+    var EMBEDDED_EVENTS = [];
+
+    function renderEvents() {
+      var arr = EMBEDDED_EVENTS;
+      var list = document.getElementById('events-list');
+      if (arr.length === 0) { list.innerHTML = '<p style="color:#888;">Пока нет ивентов</p>'; return; }
+      arr.sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
+      var html = '';
+      arr.forEach(function(ev, i){
+        var tagClass = 'tag-other', tagText = '📌 Другое';
+        if (ev.type === 'pvp') { tagClass = 'tag-pvp'; tagText = '⚔️ PvP'; }
+        if (ev.type === 'build') { tagClass = 'tag-build'; tagText = '🏠 Стройка'; }
+        if (ev.type === 'party') { tagClass = 'tag-party'; tagText = '🎉 Праздник'; }
+        html += '<div class="event-item">';
+        html += '<div class="event-date">📅 ' + ev.date + '</div>';
+        html += '<div class="event-name">' + ev.name + '</div>';
+        html += '<div class="event-desc">' + (ev.desc || '') + '</div>';
+        html += '<span class="event-tag ' + tagClass + '">' + tagText + '</span>';
+        html += '</div>';
+      });
+      list.innerHTML = html;
+    }
+
+    function updateWipeTimer() {
+      var target = EMBEDDED_WIPE_DATE;
+      if (!target) {
+        document.getElementById('days').textContent = '--';
+        document.getElementById('hours').textContent = '--';
+        document.getElementById('minutes').textContent = '--';
+        document.getElementById('seconds').textContent = '--';
+        document.getElementById('wipe-date-text').textContent = 'Дата не задана';
+        return;
+      }
+      var diff = new Date(target).getTime() - Date.now();
+      if (diff <= 0) {
+        document.getElementById('days').textContent = '00';
+        document.getElementById('hours').textContent = '00';
+        document.getElementById('minutes').textContent = '00';
+        document.getElementById('seconds').textContent = '00';
+        document.getElementById('wipe-date-text').textContent = '🔥 Вайп уже прошёл!';
+        return;
+      }
+      var d = Math.floor(diff / 86400000);
+      var h = Math.floor((diff % 86400000) / 3600000);
+      var m = Math.floor((diff % 3600000) / 60000);
+      var s = Math.floor((diff % 60000) / 1000);
+      document.getElementById('days').textContent = d < 10 ? '0'+d : d;
+      document.getElementById('hours').textContent = h < 10 ? '0'+h : h;
+      document.getElementById('minutes').textContent = m < 10 ? '0'+m : m;
+      document.getElementById('seconds').textContent = s < 10 ? '0'+s : s;
+      document.getElementById('wipe-date-text').textContent = '📅 ' + new Date(target).toLocaleDateString('ru-RU');
+    }
+
+    // АДМИНКА
+    function openAdminLogin() { document.getElementById('login-modal').classList.add('active'); }
+    function closeAdminLogin() {
+      document.getElementById('login-modal').classList.remove('active');
+      document.getElementById('admin-code-input').value = '';
+      document.getElementById('login-error').style.display = 'none';
+    }
+    function checkAdminCode() {
+      if (document.getElementById('admin-code-input').value === ADMIN_CODE) {
+        document.getElementById('login-modal').classList.remove('active');
+        document.getElementById('admin-modal').classList.add('active');
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    }
+    function closeAdmin() { document.getElementById('admin-modal').classList.remove('active'); }
+
+    function setWipeDate() {
+      var val = document.getElementById('wipe-date-input').value;
+      if (!val) return;
+      EMBEDDED_WIPE_DATE = val;
+      document.getElementById('wipe-code').value = "var EMBEDDED_WIPE_DATE = '" + val + "';";
+      updateWipeTimer();
+    }
+
+    function addEvent() {
+      var name = document.getElementById('event-name').value.trim();
+      var desc = document.getElementById('event-desc').value.trim();
+      var date = document.getElementById('event-date').value;
+      var type = document.getElementById('event-type').value;
+      if (!name || !date) return;
+      EMBEDDED_EVENTS.push({name:name, desc:desc, date:date, type:type});
+      document.getElementById('event-name').value = '';
+      document.getElementById('event-desc').value = '';
+      document.getElementById('event-date').value = '';
+      renderEvents();
+
+      // Генерируем полный код
+      var code = "var EMBEDDED_WIPE_DATE = '" + EMBEDDED_WIPE_DATE + "';\n";
+      code += "var EMBEDDED_EVENTS = " + JSON.stringify(EMBEDDED_EVENTS, null, 2) + ";";
+      document.getElementById('full-code').value = code;
+    }
+
+    renderEvents();
+    updateWipeTimer();
+    setInterval(updateWipeTimer, 1000);
+  </script>
+</body>
+</html>
