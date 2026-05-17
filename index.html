@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrifMC Pro | Техподдержка</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 3D ФОН (вращающийся куб) */
+        .background-3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+            perspective: 1000px;
+        }
+
+        .cube {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 300px;
+            transform-style: preserve-3d;
+            transform: translate(-50%, -50%) rotateX(0deg) rotateY(0deg);
+            animation: rotateCube 20s infinite linear;
+        }
+
+        @keyframes rotateCube {
+            from { transform: translate(-50%, -50%) rotateX(0deg) rotateY(0deg); }
+            to { transform: translate(-50%, -50%) rotateX(360deg) rotateY(360deg); }
+        }
+
+        .face {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 70, 0, 0.3);
+            border: 2px solid #ff4400;
+            box-shadow: 0 0 20px rgba(255, 68, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .front  { transform: translateZ(150px); background: rgba(255,68,0,0.2); }
+        .back   { transform: rotateY(180deg) translateZ(150px); background: rgba(255,68,0,0.2); }
+        .right  { transform: rotateY(90deg) translateZ(150px); background: rgba(255,68,0,0.2); }
+        .left   { transform: rotateY(-90deg) translateZ(150px); background: rgba(255,68,0,0.2); }
+        .top    { transform: rotateX(90deg) translateZ(150px); background: rgba(255,68,0,0.2); }
+        .bottom { transform: rotateX(-90deg) translateZ(150px); background: rgba(255,68,0,0.2); }
+
+        /* ОСНОВНОЙ КОНТЕЙНЕР */
+        .support-container {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            width: 500px;
+            max-width: 90%;
+            border: 1px solid #ff4400;
+            box-shadow: 0 0 50px rgba(255, 68, 0, 0.3);
+            z-index: 10;
+        }
+
+        h1 {
+            text-align: center;
+            color: #ff6600;
+            text-shadow: 0 0 10px #ff3300;
+            margin-bottom: 25px;
+            font-size: 32px;
+        }
+
+        .toggle-theme {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+
+        .theme-btn {
+            background: #333;
+            border: 1px solid #ff6600;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .theme-btn:hover {
+            background: #ff6600;
+        }
+
+        .admin-lock {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+
+        .lock-btn {
+            background: #222;
+            border: 1px solid #ff3300;
+            color: #ff3300;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .lock-btn.active {
+            background: #ff3300;
+            color: white;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            background: #222;
+            color: #ff6600;
+        }
+
+        .status.closed {
+            background: #330000;
+            color: #ff3300;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #1a1a1a;
+            border: 1px solid #ff4400;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ff8800;
+            box-shadow: 0 0 10px rgba(255, 68, 0, 0.5);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, #ff4400, #ff6600);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 68, 0, 0.8);
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .admin-panel {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ff4400;
+            display: none;
+        }
+
+        .admin-panel input {
+            background: #2a2a2a;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-3d">
+        <div class="cube">
+            <div class="face front"></div>
+            <div class="face back"></div>
+            <div class="face right"></div>
+            <div class="face left"></div>
+            <div class="face top"></div>
+            <div class="face bottom"></div>
+        </div>
+    </div>
+
+    <div class="support-container" id="supportContainer">
+        <div class="toggle-theme">
+            <button class="theme-btn" onclick="toggleTheme()">🎨 Сменить тему</button>
+        </div>
+        
+        <div class="admin-lock">
+            <button class="lock-btn" id="lockBtn" onclick="toggleAdminLock()">🔒 Админ-панель</button>
+        </div>
+
+        <h1>🛡️ GrifMC Pro Support</h1>
+
+        <div class="status" id="statusText">
+            🔥 Служба поддержки активна
+        </div>
+
+        <form id="supportForm">
+            <input type="text" id="nickname" placeholder="Ваш никнейм" required>
+            
+            <select id="reason">
+                <option value="Бан">❌ Бан — разбан</option>
+                <option value="Мут">🤐 Мут — размут</option>
+                <option value="Варн">⚠️ Варн — обжалование</option>
+                <option value="Другое">📝 Другое</option>
+            </select>
+            
+            <textarea id="message" placeholder="Опишите проблему подробно..." required></textarea>
+            
+            <button type="submit" id="submitBtn">✉️ Отправить</button>
+        </form>
+
+        <div class="admin-panel" id="adminPanel">
+            <input type="password" id="adminCode" placeholder="Код администратора">
+            <button onclick="unlockSupport()">🔓 Разблокировать поддержку</button>
+            <button onclick="closeSupport()">🔒 Закрыть поддержку</button>
+        </div>
+    </div>
+
+    <script>
+        // Переменные
+        let isSupportOpen = true;
+        let currentTheme = 'dark';
+
+        // Функция отправки на почту (через FormSubmit)
+        function sendEmail(data) {
+            const formData = new FormData();
+            formData.append('_subject', `GrifMC Pro | Обращение от ${data.nickname}`);
+            formData.append('_replyto', 'ramonenok@bk.ru');
+            formData.append('message', `
+                🎮 Обращение от: ${data.nickname}
+                📌 Причина: ${data.reason}
+                📝 Сообщение: ${data.message}
+                🕐 Время: ${new Date().toLocaleString()}
+            `);
+
+            fetch('https://formsubmit.co/ajax/ramonenok@bk.ru', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('✅ Сообщение отправлено! Администрация свяжется с вами в ближайшее время.');
+                document.getElementById('supportForm').reset();
+            })
+            .catch(error => {
+                alert('❌ Ошибка отправки. Попробуйте позже.');
+            });
+        }
+
+        // Отправка формы
+        document.getElementById('supportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!isSupportOpen) {
+                alert('🔒 Служба поддержки временно закрыта!');
+                return;
+            }
+
+            const nickname = document.getElementById('nickname').value;
+            const reason = document.getElementById('reason').value;
+            const message = document.getElementById('message').value;
+
+            if (!nickname || !message) {
+                alert('❌ Заполните никнейм и сообщение!');
+                return;
+            }
+
+            sendEmail({ nickname, reason, message });
+        });
+
+        // Админ-панель (замок)
+        function toggleAdminLock() {
+            const adminPanel = document.getElementById('adminPanel');
+            if (adminPanel.style.display === 'none' || adminPanel.style.display === '') {
+                adminPanel.style.display = 'block';
+                document.getElementById('lockBtn').textContent = '🔓 Админ-панель';
+                document.getElementById('lockBtn').style.background = '#ff3300';
+            } else {
+                adminPanel.style.display = 'none';
+                document.getElementById('lockBtn').textContent = '🔒 Админ-панель';
+                document.getElementById('lockBtn').style.background = '#222';
+            }
+        }
+
+        // Разблокировка поддержки
+        function unlockSupport() {
+            const code = document.getElementById('adminCode').value;
+            if (code === 'grifmcpro111') {
+                isSupportOpen = true;
+                document.getElementById('statusText').innerHTML = '🔥 Служба поддержки активна';
+                document.getElementById('statusText').className = 'status';
+                document.getElementById('submitBtn').disabled = false;
+                alert('✅ Служба поддержки разблокирована!');
+                document.getElementById('adminCode').value = '';
+            } else {
+                alert('❌ Неверный код доступа!');
+            }
+        }
+
+        // Закрытие поддержки (только для админа)
+        function closeSupport() {
+            const code = document.getElementById('adminCode').value;
+            if (code === 'grifmcpro111') {
+                isSupportOpen = false;
+                document.getElementById('statusText').innerHTML = '🔒 Служба поддержки временно закрыта';
+                document.getElementById('statusText').className = 'status closed';
+                document.getElementById('submitBtn').disabled = true;
+                alert('🔒 Служба поддержки закрыта!');
+                document.getElementById('adminCode').value = '';
+            } else {
+                alert('❌ Неверный код доступа!');
+            }
+        }
+
+        // Смена темы (фон контейнера)
+        function toggleTheme() {
+            const container = document.getElementById('supportContainer');
+            if (currentTheme === 'dark') {
+                container.style.background = 'rgba(255, 255, 255, 0.85)';
+                container.style.backdropFilter = 'blur(15px)';
+                container.style.borderColor = '#ff6600';
+                currentTheme = 'light';
+            } else {
+                container.style.background = 'rgba(0, 0, 0, 0.8)';
+                container.style.backdropFilter = 'blur(15px)';
+                container.style.borderColor = '#ff4400';
+                currentTheme = 'dark';
+            }
+        }
+    </script>
+</body>
+</html>
