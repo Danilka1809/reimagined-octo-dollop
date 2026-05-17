@@ -21,7 +21,7 @@
             overflow-x: hidden;
         }
 
-        /* 3D ФОН (вращающийся куб) */
+        /* 3D ФОН */
         .background-3d {
             position: fixed;
             top: 0;
@@ -121,11 +121,6 @@
             font-weight: bold;
         }
 
-        .lock-btn.active {
-            background: #ff3300;
-            color: white;
-        }
-
         .status {
             text-align: center;
             padding: 10px;
@@ -149,12 +144,6 @@
             border-radius: 8px;
             color: white;
             font-size: 14px;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #ff8800;
-            box-shadow: 0 0 10px rgba(255, 68, 0, 0.5);
         }
 
         textarea {
@@ -183,21 +172,12 @@
         button:disabled {
             background: #555;
             cursor: not-allowed;
-            transform: none;
         }
 
         .admin-panel {
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid #ff4400;
-            display: none;
-        }
-
-        .admin-panel input {
-            background: #2a2a2a;
-        }
-
-        .hidden {
             display: none;
         }
     </style>
@@ -225,21 +205,24 @@
 
         <h1>🛡️ GrifMC Pro Support</h1>
 
-        <div class="status" id="statusText">
-            🔥 Служба поддержки активна
-        </div>
+        <div class="status" id="statusText">🔥 Служба поддержки активна</div>
 
-        <form id="supportForm">
-            <input type="text" id="nickname" placeholder="Ваш никнейм" required>
+        <form id="supportForm" action="https://api.web3forms.com/submit" method="POST">
+            <input type="hidden" name="access_key" value="42864224-6df0-4e25-8068-7b486cf314dd">
+            <input type="hidden" name="subject" value="GrifMC Pro | Обращение в поддержку">
+            <input type="hidden" name="from_name" value="GrifMC Support">
+            <input type="hidden" name="email" value="ramonenok@bk.ru">
             
-            <select id="reason">
+            <input type="text" name="nickname" id="nickname" placeholder="Ваш никнейм" required>
+            
+            <select name="reason" id="reason">
                 <option value="Бан">❌ Бан — разбан</option>
                 <option value="Мут">🤐 Мут — размут</option>
                 <option value="Варн">⚠️ Варн — обжалование</option>
                 <option value="Другое">📝 Другое</option>
             </select>
             
-            <textarea id="message" placeholder="Опишите проблему подробно..." required></textarea>
+            <textarea name="message" id="message" placeholder="Опишите проблему подробно..." required></textarea>
             
             <button type="submit" id="submitBtn">✉️ Отправить</button>
         </form>
@@ -252,38 +235,15 @@
     </div>
 
     <script>
-        // Переменные
         let isSupportOpen = true;
         let currentTheme = 'dark';
 
-        // Функция отправки на почту (через FormSubmit)
-        function sendEmail(data) {
-            const formData = new FormData();
-            formData.append('_subject', `GrifMC Pro | Обращение от ${data.nickname}`);
-            formData.append('_replyto', 'ramonenok@bk.ru');
-            formData.append('message', `
-                🎮 Обращение от: ${data.nickname}
-                📌 Причина: ${data.reason}
-                📝 Сообщение: ${data.message}
-                🕐 Время: ${new Date().toLocaleString()}
-            `);
+        const form = document.getElementById('supportForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const nickname = document.getElementById('nickname');
+        const message = document.getElementById('message');
 
-            fetch('https://formsubmit.co/ajax/ramonenok@bk.ru', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert('✅ Сообщение отправлено! Администрация свяжется с вами в ближайшее время.');
-                document.getElementById('supportForm').reset();
-            })
-            .catch(error => {
-                alert('❌ Ошибка отправки. Попробуйте позже.');
-            });
-        }
-
-        // Отправка формы
-        document.getElementById('supportForm').addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             if (!isSupportOpen) {
@@ -291,40 +251,62 @@
                 return;
             }
 
-            const nickname = document.getElementById('nickname').value;
-            const reason = document.getElementById('reason').value;
-            const message = document.getElementById('message').value;
-
-            if (!nickname || !message) {
+            if (!nickname.value || !message.value) {
                 alert('❌ Заполните никнейм и сообщение!');
                 return;
             }
 
-            sendEmail({ nickname, reason, message });
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Отправка...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        access_key: '42864224-6df0-4e25-8068-7b486cf314dd',
+                        nickname: nickname.value,
+                        reason: document.getElementById('reason').value,
+                        message: message.value,
+                        email: 'ramonenok@bk.ru',
+                        subject: 'GrifMC Pro | Обращение в поддержку'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('✅ Сообщение отправлено! Администрация свяжется с вами.');
+                    form.reset();
+                } else {
+                    alert('❌ Ошибка: ' + (result.message || 'Попробуйте позже'));
+                }
+            } catch (error) {
+                alert('❌ Ошибка соединения. Проверьте интернет.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '✉️ Отправить';
+            }
         });
 
-        // Админ-панель (замок)
         function toggleAdminLock() {
-            const adminPanel = document.getElementById('adminPanel');
-            if (adminPanel.style.display === 'none' || adminPanel.style.display === '') {
-                adminPanel.style.display = 'block';
+            const panel = document.getElementById('adminPanel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
                 document.getElementById('lockBtn').textContent = '🔓 Админ-панель';
-                document.getElementById('lockBtn').style.background = '#ff3300';
             } else {
-                adminPanel.style.display = 'none';
+                panel.style.display = 'none';
                 document.getElementById('lockBtn').textContent = '🔒 Админ-панель';
-                document.getElementById('lockBtn').style.background = '#222';
             }
         }
 
-        // Разблокировка поддержки
         function unlockSupport() {
             const code = document.getElementById('adminCode').value;
             if (code === 'grifmcpro111') {
                 isSupportOpen = true;
                 document.getElementById('statusText').innerHTML = '🔥 Служба поддержки активна';
                 document.getElementById('statusText').className = 'status';
-                document.getElementById('submitBtn').disabled = false;
+                submitBtn.disabled = false;
                 alert('✅ Служба поддержки разблокирована!');
                 document.getElementById('adminCode').value = '';
             } else {
@@ -332,14 +314,13 @@
             }
         }
 
-        // Закрытие поддержки (только для админа)
         function closeSupport() {
             const code = document.getElementById('adminCode').value;
             if (code === 'grifmcpro111') {
                 isSupportOpen = false;
                 document.getElementById('statusText').innerHTML = '🔒 Служба поддержки временно закрыта';
                 document.getElementById('statusText').className = 'status closed';
-                document.getElementById('submitBtn').disabled = true;
+                submitBtn.disabled = true;
                 alert('🔒 Служба поддержки закрыта!');
                 document.getElementById('adminCode').value = '';
             } else {
@@ -347,17 +328,14 @@
             }
         }
 
-        // Смена темы (фон контейнера)
         function toggleTheme() {
             const container = document.getElementById('supportContainer');
             if (currentTheme === 'dark') {
                 container.style.background = 'rgba(255, 255, 255, 0.85)';
-                container.style.backdropFilter = 'blur(15px)';
                 container.style.borderColor = '#ff6600';
                 currentTheme = 'light';
             } else {
                 container.style.background = 'rgba(0, 0, 0, 0.8)';
-                container.style.backdropFilter = 'blur(15px)';
                 container.style.borderColor = '#ff4400';
                 currentTheme = 'dark';
             }
