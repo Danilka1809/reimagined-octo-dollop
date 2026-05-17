@@ -1,263 +1,367 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>GrifMC Pro — Главная</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      background: #0a0a0a;
-      color: #fff;
-      overflow-x: hidden;
-      position: relative;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: 
-        radial-gradient(ellipse at 20% 50%, rgba(76, 175, 80, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, rgba(33, 150, 243, 0.06) 0%, transparent 50%);
-      z-index: 0;
-      pointer-events: none;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrifMC Pro | Техподдержка</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .main-card {
-      position: relative;
-      z-index: 10;
-      max-width: 420px;
-      width: 100%;
-      padding: 30px 25px 25px;
-      border-radius: 24px;
-      text-align: center;
-      background: rgba(20, 20, 20, 0.85);
-      backdrop-filter: blur(15px);
-      border: 2px solid #4CAF50;
-      box-shadow: 0 0 30px rgba(76, 175, 80, 0.4), 0 15px 40px rgba(0,0,0,0.8);
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
 
-    .server-icon { font-size: 55px; margin-bottom: 12px; }
-    @keyframes rgb {
-      0% { color: #ff4d4d; } 25% { color: #4dff4d; }
-      50% { color: #4dd2ff; } 75% { color: #ff4dff; }
-      100% { color: #ff4d4d; }
-    }
-    .glitch-title {
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: 3px;
-      animation: rgb 3s infinite;
-      margin-bottom: 8px;
-    }
-    .server-subtitle { color: #aaa; font-size: 13px; margin-bottom: 18px; }
+        /* 3D ФОН (вращающийся куб) */
+        .background-3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+            perspective: 1000px;
+        }
 
-    .status-box {
-      background: rgba(0,0,0,0.5); padding: 12px 20px; border-radius: 30px;
-      display: inline-flex; align-items: center; gap: 10px;
-      margin-bottom: 16px; border: 1px solid #333;
-    }
-    .status-dot {
-      width: 12px; height: 12px; background: #4CAF50; border-radius: 50%;
-      animation: pulse 1.5s infinite; box-shadow: 0 0 8px #4CAF50;
-    }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .status-text { font-weight: 700; font-size: 16px; color: #4CAF50; }
+        .cube {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 300px;
+            transform-style: preserve-3d;
+            transform: translate(-50%, -50%) rotateX(0deg) rotateY(0deg);
+            animation: rotateCube 20s infinite linear;
+        }
 
-    .marquee-box {
-      background: rgba(0,0,0,0.5); border: 1px solid #333;
-      border-radius: 10px; padding: 10px; margin: 15px 0 18px;
-      overflow: hidden; white-space: nowrap;
-    }
-    .marquee-text {
-      display: inline-block; animation: marquee 12s linear infinite;
-      color: #FFD700; font-size: 13px; font-weight: 600;
-    }
-    @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        @keyframes rotateCube {
+            from { transform: translate(-50%, -50%) rotateX(0deg) rotateY(0deg); }
+            to { transform: translate(-50%, -50%) rotateX(360deg) rotateY(360deg); }
+        }
 
-    .ip-button {
-      display: block; width: 100%; padding: 18px; background: #2196F3;
-      color: #fff; border: none; border-radius: 14px;
-      font-size: 20px; font-weight: 700; letter-spacing: 1px;
-      cursor: pointer; margin-bottom: 22px; transition: transform 0.2s; font-family: inherit;
-    }
-    .ip-button:hover { transform: scale(1.02); }
+        .face {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 70, 0, 0.3);
+            border: 2px solid #ff4400;
+            box-shadow: 0 0 20px rgba(255, 68, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
 
-    .btn {
-      display: block; width: 100%; padding: 16px; border: none;
-      border-radius: 14px; font-size: 17px; font-weight: 700;
-      cursor: pointer; margin-bottom: 12px; transition: 0.25s;
-      font-family: inherit; text-decoration: none; color: #fff;
-      background: #607D8B; text-align: center;
-    }
-    .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
-    .btn-rules { background: #FF9800; color: #000; }
-    .btn-help { background: #4CAF50; }
-    .btn-community { background: #9C27B0; }
-    .btn-status { background: #00BCD4; color: #000; }
-    .btn-report { background: #f44336; }
-    .btn-news { background: #2196F3; }
-    .btn-events { background: #FF5722; }
-    .btn-promo { background: #00BCD4; color: #000; }
-    .btn-wheel { background: #FFD700; color: #000; }
-    .btn-suggest { background: #00E676; color: #000; }
+        .front  { transform: translateZ(150px); background: rgba(255,68,0,0.2); }
+        .back   { transform: rotateY(180deg) translateZ(150px); background: rgba(255,68,0,0.2); }
+        .right  { transform: rotateY(90deg) translateZ(150px); background: rgba(255,68,0,0.2); }
+        .left   { transform: rotateY(-90deg) translateZ(150px); background: rgba(255,68,0,0.2); }
+        .top    { transform: rotateX(90deg) translateZ(150px); background: rgba(255,68,0,0.2); }
+        .bottom { transform: rotateX(-90deg) translateZ(150px); background: rgba(255,68,0,0.2); }
 
-    .footer-text { margin-top: 18px; font-size: 11px; color: #666; }
+        /* ОСНОВНОЙ КОНТЕЙНЕР */
+        .support-container {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            width: 500px;
+            max-width: 90%;
+            border: 1px solid #ff4400;
+            box-shadow: 0 0 50px rgba(255, 68, 0, 0.3);
+            z-index: 10;
+        }
 
-    .modal {
-      display: none; position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%; background: rgba(0,0,0,0.85);
-      z-index: 9999; justify-content: center; align-items: center; padding: 20px;
-    }
-    .modal.active { display: flex; }
-    .modal-content {
-      background: #1a1a1a; padding: 30px 25px; border-radius: 20px;
-      max-width: 380px; width: 100%; border: 2px solid #FF9800;
-      text-align: center; max-height: 80vh; overflow-y: auto;
-    }
-    .modal-content h3 { color: #FF9800; font-size: 20px; font-weight: 700; margin-bottom: 18px; }
-    .modal-content p { color: #ccc; font-size: 15px; line-height: 1.7; margin-bottom: 12px; }
-    .modal-highlight { color: #4CAF50; font-weight: 700; }
-    .modal-content input, .modal-content textarea {
-      width: 100%; padding: 12px; margin-bottom: 15px;
-      background: #2a2a2a; border: 1px solid #444; border-radius: 8px;
-      color: #fff; font-size: 15px; font-family: inherit;
-    }
-    .modal-content textarea { resize: vertical; min-height: 80px; }
-    .modal-content button, .modal-content a {
-      display: block; width: 100%; padding: 14px; border: none;
-      border-radius: 12px; font-size: 16px; font-weight: 700;
-      cursor: pointer; margin-top: 16px; font-family: inherit;
-      text-decoration: none; color: #000; background: #FF9800;
-      text-align: center;
-    }
-    .modal-content button.close-btn { background: transparent; border: 1px solid #666; color: #ccc; margin-top: 8px; }
-    .fab {
-      position: fixed; bottom: 24px; right: 24px;
-      width: 56px; height: 56px; background: #4CAF50;
-      border-radius: 50%; box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 28px; color: #fff; text-decoration: none;
-      z-index: 999; transition: 0.25s;
-    }
-    .fab:hover { transform: scale(1.1); background: #43A047; }
-  </style>
+        h1 {
+            text-align: center;
+            color: #ff6600;
+            text-shadow: 0 0 10px #ff3300;
+            margin-bottom: 25px;
+            font-size: 32px;
+        }
+
+        .toggle-theme {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+
+        .theme-btn {
+            background: #333;
+            border: 1px solid #ff6600;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .theme-btn:hover {
+            background: #ff6600;
+        }
+
+        .admin-lock {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+
+        .lock-btn {
+            background: #222;
+            border: 1px solid #ff3300;
+            color: #ff3300;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .lock-btn.active {
+            background: #ff3300;
+            color: white;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            background: #222;
+            color: #ff6600;
+        }
+
+        .status.closed {
+            background: #330000;
+            color: #ff3300;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #1a1a1a;
+            border: 1px solid #ff4400;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ff8800;
+            box-shadow: 0 0 10px rgba(255, 68, 0, 0.5);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, #ff4400, #ff6600);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 68, 0, 0.8);
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .admin-panel {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ff4400;
+            display: none;
+        }
+
+        .admin-panel input {
+            background: #2a2a2a;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-
-  <div class="main-card">
-    <div class="server-icon">🎮</div>
-    <h1 class="glitch-title">GRIFMC PRO</h1>
-    <p class="server-subtitle">Вся информация о сервере</p>
-
-    <div class="status-box">
-      <span class="status-dot"></span>
-      <span class="status-text">Сервер онлайн</span>
+    <div class="background-3d">
+        <div class="cube">
+            <div class="face front"></div>
+            <div class="face back"></div>
+            <div class="face right"></div>
+            <div class="face left"></div>
+            <div class="face top"></div>
+            <div class="face bottom"></div>
+        </div>
     </div>
 
-    <div class="marquee-box">
-      <span class="marquee-text">🎉 Все ивенты и новости смотрите в ТГ-канале сервера! Подписывайся!</span>
+    <div class="support-container" id="supportContainer">
+        <div class="toggle-theme">
+            <button class="theme-btn" onclick="toggleTheme()">🎨 Сменить тему</button>
+        </div>
+        
+        <div class="admin-lock">
+            <button class="lock-btn" id="lockBtn" onclick="toggleAdminLock()">🔒 Админ-панель</button>
+        </div>
+
+        <h1>🛡️ GrifMC Pro Support</h1>
+
+        <div class="status" id="statusText">
+            🔥 Служба поддержки активна
+        </div>
+
+        <form id="supportForm">
+            <input type="text" id="nickname" placeholder="Ваш никнейм" required>
+            
+            <select id="reason">
+                <option value="Бан">❌ Бан — разбан</option>
+                <option value="Мут">🤐 Мут — размут</option>
+                <option value="Варн">⚠️ Варн — обжалование</option>
+                <option value="Другое">📝 Другое</option>
+            </select>
+            
+            <textarea id="message" placeholder="Опишите проблему подробно..." required></textarea>
+            
+            <button type="submit" id="submitBtn">✉️ Отправить</button>
+        </form>
+
+        <div class="admin-panel" id="adminPanel">
+            <input type="password" id="adminCode" placeholder="Код администратора">
+            <button onclick="unlockSupport()">🔓 Разблокировать поддержку</button>
+            <button onclick="closeSupport()">🔒 Закрыть поддержку</button>
+        </div>
     </div>
 
-    <button class="ip-button" id="copyIpBtn">🌐 grifmcru.aternos.me:11782</button>
+    <script>
+        // Переменные
+        let isSupportOpen = true;
+        let currentTheme = 'dark';
 
-    <a class="btn btn-news" href="news.html">📰 Новости сервера</a>
-    <a class="btn btn-events" href="events.html">📅 Ивенты и Вайп</a>
-    <a class="btn btn-promo" href="promo.html">🎟️ Промокоды</a>
-    <a class="btn btn-wheel" href="wheel.html">🎰 Колесо удачи</a>
-    <button class="btn btn-rules" id="rulesBtn">📜 Правила сервера</button>
-    <a class="btn btn-help" href="https://t.me/helperservera_bot" target="_blank">💬 Написать в поддержку</a>
-    <button class="btn btn-community" id="communityBtn">👑 Наша команда</button>
-    <button class="btn btn-status" id="statusBtn">🖥️ Статус сервера</button>
-    <button class="btn btn-report" id="reportBtn">📋 Жалоба на игрока</button>
-    <a class="btn btn-suggest" href="suggest.html">💡 Предложить обновление</a>
+        // Функция отправки на почту (через FormSubmit)
+        function sendEmail(data) {
+            const formData = new FormData();
+            formData.append('_subject', `GrifMC Pro | Обращение от ${data.nickname}`);
+            formData.append('_replyto', 'ramonenok@bk.ru');
+            formData.append('message', `
+                🎮 Обращение от: ${data.nickname}
+                📌 Причина: ${data.reason}
+                📝 Сообщение: ${data.message}
+                🕐 Время: ${new Date().toLocaleString()}
+            `);
 
-    <p class="footer-text">© 2026 | GrifMC Pro | Все права защищены</p>
-  </div>
+            fetch('https://formsubmit.co/ajax/ramonenok@bk.ru', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('✅ Сообщение отправлено! Администрация свяжется с вами в ближайшее время.');
+                document.getElementById('supportForm').reset();
+            })
+            .catch(error => {
+                alert('❌ Ошибка отправки. Попробуйте позже.');
+            });
+        }
 
-  <!-- Модальные окна -->
-  <div class="modal" id="rulesModal">
-    <div class="modal-content">
-      <h3>📜 Правила сервера</h3>
-      <p>Все правила, обжалование бана и помощь — <span class="modal-highlight">в нашем боте</span>!</p>
-      <a href="https://t.me/helperservera_bot" target="_blank">🤖 Перейти в бота</a>
-      <button class="close-btn" data-close="rulesModal">✖ Закрыть</button>
-    </div>
-  </div>
+        // Отправка формы
+        document.getElementById('supportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!isSupportOpen) {
+                alert('🔒 Служба поддержки временно закрыта!');
+                return;
+            }
 
-  <div class="modal" id="communityModal">
-    <div class="modal-content">
-      <h3 style="animation: rgb 3s infinite;">👑 Наша команда</h3>
-      <p style="text-align:center; margin:15px 0 5px; color:#FFD700;">🏆 <b>Создатель сервера</b></p>
-      <p style="text-align:center; font-size:22px; font-weight:bold; animation: rgb 3s infinite; background:#2a2a2a; padding:12px; border-radius:10px; margin-bottom:20px;">pley1657</p>
-      <p style="text-align:center; margin:10px 0; color:#aaa;">🛡️ <b>Модераторы</b></p>
-      <p style="text-align:center; color:#ccc; background:#2a2a2a; padding:10px; border-radius:10px;"><i>Пока никого нет</i></p>
-      <button class="close-btn" data-close="communityModal">✖ Закрыть</button>
-    </div>
-  </div>
+            const nickname = document.getElementById('nickname').value;
+            const reason = document.getElementById('reason').value;
+            const message = document.getElementById('message').value;
 
-  <div class="modal" id="statusModal">
-    <div class="modal-content">
-      <h3>🖥️ Статус сервера</h3>
-      <p>🌐 <b>IP:</b> <span class="modal-highlight">grifmcru.aternos.me:11782</span></p>
-      <p>📦 <b>Версия:</b> <span class="modal-highlight">1.20.1</span></p>
-      <p>🟢 <b>Статус:</b> <span class="modal-highlight">Онлайн</span></p>
-      <p>🤖 <b>Бот:</b> <span class="modal-highlight">@helperservera_bot</span></p>
-      <button class="close-btn" data-close="statusModal">✖ Закрыть</button>
-    </div>
-  </div>
+            if (!nickname || !message) {
+                alert('❌ Заполните никнейм и сообщение!');
+                return;
+            }
 
-  <div class="modal" id="reportModal">
-    <div class="modal-content">
-      <h3>📋 Жалоба на игрока</h3>
-      <form action="https://api.web3forms.com/submit" method="POST">
-        <input type="hidden" name="access_key" value="42864224-6df0-4e25-8068-7b486cf314dd">
-        <input type="hidden" name="subject" value="Новая жалоба с GrifMC PRO!">
-        <input type="hidden" name="redirect" value="https://danilka1809.github.io/reimagined-octo-dollop/">
-        <input type="text" name="Ваш ник" placeholder="Ваш ник в игре" required>
-        <input type="text" name="Ник нарушителя" placeholder="Ник нарушителя" required>
-        <textarea name="Причина жалобы" placeholder="Опишите..." required></textarea>
-        <input type="date" name="Дата нарушения" required>
-        <input type="email" name="Ваша почта для связи" placeholder="Ваш email для ответа" required>
-        <button type="submit">📤 Отправить жалобу</button>
-      </form>
-      <button class="close-btn" data-close="reportModal">✖ Закрыть</button>
-    </div>
-  </div>
-
-  <a class="fab" href="https://t.me/helperservera_bot" target="_blank" title="Написать в бота">💬</a>
-
-  <script>
-    document.getElementById('copyIpBtn').addEventListener('click', function() {
-      navigator.clipboard.writeText('grifmcru.aternos.me:11782');
-      alert('✅ IP скопирован!');
-    });
-
-    function setupModal(btnId, modalId) {
-      document.getElementById(btnId).addEventListener('click', () => {
-        document.getElementById(modalId).classList.add('active');
-      });
-      document.querySelectorAll(`#${modalId} [data-close]`).forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById(modalId).classList.remove('active');
+            sendEmail({ nickname, reason, message });
         });
-      });
-      document.getElementById(modalId).addEventListener('click', function(e) {
-        if (e.target === this) this.classList.remove('active');
-      });
-    }
 
-    setupModal('rulesBtn', 'rulesModal');
-    setupModal('communityBtn', 'communityModal');
-    setupModal('statusBtn', 'statusModal');
-    setupModal('reportBtn', 'reportModal');
-  </script>
+        // Админ-панель (замок)
+        function toggleAdminLock() {
+            const adminPanel = document.getElementById('adminPanel');
+            if (adminPanel.style.display === 'none' || adminPanel.style.display === '') {
+                adminPanel.style.display = 'block';
+                document.getElementById('lockBtn').textContent = '🔓 Админ-панель';
+                document.getElementById('lockBtn').style.background = '#ff3300';
+            } else {
+                adminPanel.style.display = 'none';
+                document.getElementById('lockBtn').textContent = '🔒 Админ-панель';
+                document.getElementById('lockBtn').style.background = '#222';
+            }
+        }
+
+        // Разблокировка поддержки
+        function unlockSupport() {
+            const code = document.getElementById('adminCode').value;
+            if (code === 'grifmcpro111') {
+                isSupportOpen = true;
+                document.getElementById('statusText').innerHTML = '🔥 Служба поддержки активна';
+                document.getElementById('statusText').className = 'status';
+                document.getElementById('submitBtn').disabled = false;
+                alert('✅ Служба поддержки разблокирована!');
+                document.getElementById('adminCode').value = '';
+            } else {
+                alert('❌ Неверный код доступа!');
+            }
+        }
+
+        // Закрытие поддержки (только для админа)
+        function closeSupport() {
+            const code = document.getElementById('adminCode').value;
+            if (code === 'grifmcpro111') {
+                isSupportOpen = false;
+                document.getElementById('statusText').innerHTML = '🔒 Служба поддержки временно закрыта';
+                document.getElementById('statusText').className = 'status closed';
+                document.getElementById('submitBtn').disabled = true;
+                alert('🔒 Служба поддержки закрыта!');
+                document.getElementById('adminCode').value = '';
+            } else {
+                alert('❌ Неверный код доступа!');
+            }
+        }
+
+        // Смена темы (фон контейнера)
+        function toggleTheme() {
+            const container = document.getElementById('supportContainer');
+            if (currentTheme === 'dark') {
+                container.style.background = 'rgba(255, 255, 255, 0.85)';
+                container.style.backdropFilter = 'blur(15px)';
+                container.style.borderColor = '#ff6600';
+                currentTheme = 'light';
+            } else {
+                container.style.background = 'rgba(0, 0, 0, 0.8)';
+                container.style.backdropFilter = 'blur(15px)';
+                container.style.borderColor = '#ff4400';
+                currentTheme = 'dark';
+            }
+        }
+    </script>
 </body>
 </html>
